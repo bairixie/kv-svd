@@ -1,47 +1,41 @@
-import torch
-
 @torch.no_grad()
-def chol_qr(
-    Y_bf16,
-    eye_fp32,
-    base_eps=1e-6,
-    max_eps=10.0,
-    max_tries=2,
-    use_eigh_last=True,
-    fallback_to_qr=True,   
-):
+def chol_qr(Y_bf16, eye, base_eps=1e-6, max_eps=10.0, max_tries=4, use_eigh_last=True, fallback_to_qr=True,):
     Y = Y_bf16.float()
-    G = torch.bmm(Y.transpose(1, 2), Y)
-    G = 0.5 * (G + G.transpose(1, 2))
 
+    # Gram: [bs, q, q]
+    G = torch.bmm(Y.transpose(1, 2), Y)
+    G = 0.5 * (G + G.transpose(1, 2))  # symmetrize
+
+    # scale ~ trace/q (more robust than mean diag, but both OK)
     d = torch.diagonal(G, dim1=-2, dim2=-1)
     scale = (d.mean(dim=-1, keepdim=True).clamp_min(1e-12)).view(-1, 1, 1)
+
     eps = float(base_eps)
     last_info = None
 
-    for attempt in range(max_tries):
-        jitter = (eps * scale)
-        R, info = torch.linalg.cholesky_ex(G + jitter * eye_fp32, upper=True)
+    # 1) cheap jitter attempts
+    for _ in range(max_tries):
+        R, info = torch.linalg.cholesky_ex(G + (eps * scale) * eye, upper=True)
         if (info == 0).all():
-            Q = torch.linalg.solve_triangular(R, Y, upper=True, left=False).to(Y_bf16.dtype)
-            return Q
+            return torch.linalg.solve_triangular(R, Y, upper=True, left=False).to(Y_bf16.dtype)
         last_info = info
         eps = min(eps * 10.0, max_eps)
 
+    # 2) SPD correction 
     if use_eigh_last:
-        try:
-            eigvals, eigvecs = torch.linalg.eigh(G)
-            min_ev = max(1e-4, eps * 1.5)
-            eigvals = torch.clamp(eigvals, min=min_ev)
-            G_spd = torch.bmm(torch.bmm(eigvecs, torch.diag_embed(eigvals)), eigvecs.transpose(1, 2))
-            G_spd = 0.5 * (G_spd + G_spd.transpose(1, 2))
-            R, info = torch.linalg.cholesky_ex(G_spd, upper=True)
-            if (info == 0).all():
-                Q = torch.linalg.solve_triangular(R, Y, upper=True, left=False).to(Y_bf16.dtype)
-                return Q
-            last_info = info
-        except Exception:
-            pass
+        # lambda_min per batch element
+        # G is symmetric; eigvalsh is stable & cheaper than eigh
+        lam_min = torch.linalg.eigvalsh(G).min(dim=-1).values.view(-1, 1, 1)  # [bs,1,1]
+
+        # shift = max(0, -lam_min + tiny)
+        # tiny uses scale so it's magnitude-aware
+        tiny = (1e-6 * scale)
+        shift = (-lam_min + tiny).clamp_min(0.0)
+
+        R, info = torch.linalg.cholesky_ex(G + shift * eye, upper=True)
+        if (info == 0).all():
+            return torch.linalg.solve_triangular(R, Y, upper=True, left=False).to(Y_bf16.dtype)
+        last_info = info
 
     if fallback_to_qr:
         # Householder QR fallback (stable)
@@ -55,17 +49,17 @@ def chol_qr(
 
 
 @torch.no_grad()
-def randomized_svd_bf16_cholqr(tensor_reshaped, rank, n_iter=8, oversample=4, 
-                              base_eps=1e-6, max_eps=10.0, max_tries=6, use_eigh_last=True, breakdown=None):
+def randomized_svd_bf16_cholqr_v2(tensor_reshaped, rank, n_iter=8, oversample=4, breakdown=None):
     device = tensor_reshaped.device
-
     bs, sl, n = tensor_reshaped.shape
     k = min(rank, sl, n)
     q = min(k + oversample, n)
 
     x = tensor_reshaped.contiguous().to(torch.bfloat16)
     xt = x.transpose(1, 2)
-    eye = torch.eye(q, device=device, dtype=torch.float32).unsqueeze(0)
+
+    # IMPORTANT: no unsqueeze(0) needed; [q,q] broadcasts to [bs,q,q]
+    eye = torch.eye(q, device=device, dtype=torch.bfloat16)
 
     Omega = torch.empty((bs, n, q), device=device, dtype=torch.bfloat16)
     Omega.normal_()
@@ -74,11 +68,12 @@ def randomized_svd_bf16_cholqr(tensor_reshaped, rank, n_iter=8, oversample=4,
 
     for _ in range(n_iter):
         Y = torch.bmm(x, torch.bmm(xt, Y))
+        # keep normalization behavior (it matters for score)
         denom = torch.linalg.vector_norm(Y, dim=1, keepdim=True, dtype=torch.float32).clamp_min(1e-8).to(Y.dtype)
         Y = Y / denom
-        Y = chol_qr(Y, eye, base_eps=base_eps, max_eps=max_eps, max_tries=max_tries, use_eigh_last=use_eigh_last)
+        Y = chol_qr(Y, eye)
 
-    Q = chol_qr(Y, eye, base_eps=base_eps, max_eps=max_eps, max_tries=max_tries, use_eigh_last=use_eigh_last)
+    Q = chol_qr(Y, eye)
     del Y, eye
 
     B = torch.bmm(Q.transpose(1, 2), x)

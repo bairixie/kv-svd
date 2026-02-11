@@ -1,0 +1,121 @@
+================================================================================
+SVD Algorithm Latency Breakdown Report (Simplified)
+================================================================================
+
+Algorithm Overview:
+--------------------------------------------------------------------------------
+Randomized SVD Algorithm Steps:
+  1. Preparation: Reshape tensor, prepare transpose and identity matrix
+  2. Projection: Random projection Y = X @ Omega (first BMM)
+  3. Power Iteration: Iteratively refine Y using X^T @ Y and X @ Z (BMMs + QR)
+  4. Final QR: Orthonormalize Y to get Q using Cholesky QR (fallback to Householder)
+  5. Project to Low-rank: Compute B = Q^T @ X (BMM)
+  6. Small SVD (FP32): Perform SVD on small matrix B
+  7. Reconstruction: Reconstruct U = Q @ U_hat (BMM)
+
+Configuration:
+  SVD Method: randomized
+  Use Original SVD: False
+  Timestamp: 2026-02-10 01:26:02
+
+================================================================================
+Method: Custom Randomized SVD (Rank 256)
+Rank: 256
+================================================================================
+Total Calls: 768
+Total Time: 73454.94 ms (73.45 s)
+Average Time: 95.64 ms
+Min/Max Time: 86.23 / 205.95 ms
+
+Latency Breakdown (Average per call):
+--------------------------------------------------------------------------------
+1. Preparation                               :     2.39 ms (min:   2.36, max:   2.48) (  2.5%)
+  Reshape tensor, prepare transpose and identity matrix
+2. Projection (BMM)                          :     1.90 ms (min:   1.81, max:   3.56) (  2.0%)
+  Random projection Y = X @ Omega
+3. Power Iteration (Total)                   :    74.82 ms (min:  66.71, max: 184.74) ( 78.2%)
+  Iteratively refine Y: X^T @ Y and X @ Z (includes all BMMs and QR)
+4. Final QR                                  :     3.63 ms (min:   3.58, max:   6.97) (  3.8%)
+  Orthonormalize Y to get Q (Cholesky QR or Householder fallback)
+5. Project to Low-rank (BMM)                 :     2.49 ms (min:   1.59, max:   4.71) (  2.6%)
+  Compute B = Q^T @ X
+6. Small SVD (FP32)                          :    10.03 ms (min:   9.17, max:  19.93) ( 10.5%)
+  Perform SVD on small matrix B
+7. Reconstruction (BMM)                      :     0.25 ms (min:   0.19, max:   0.29) (  0.3%)
+  Reconstruct U = Q @ U_hat
+
+Time Sum Verification:
+--------------------------------------------------------------------------------
+  Sum of 7 main stages:    95.52 ms
+  Total measured time:     95.64 ms
+  Difference:                0.13 ms (0.13%)
+  ✓ Time sum verification passed (difference < 1%)
+
+Sample Record Details:
+--------------------------------------------------------------------------------
+Tensor Shape: [1, 32, 65295, 128]
+Rank: 256
+Power Iterations (n_iter): 8
+Oversample: 4
+
+Breakdown (one sample):
+  1. Preparation: 2.38 ms
+  2. Projection (BMM): 3.56 ms
+  3. Power Iteration (Total): 119.63 ms
+  4. Final QR: 6.97 ms
+  5. Project to Low-rank (BMM): 2.82 ms
+  6. Small SVD (FP32): 19.93 ms
+  7. Reconstruction (BMM): 0.27 ms
+
+================================================================================
+Method: Custom Randomized SVD (Rank 384)
+Rank: 384
+================================================================================
+Total Calls: 768
+Total Time: 107969.85 ms (107.97 s)
+Average Time: 140.59 ms
+Min/Max Time: 126.02 / 170.55 ms
+
+Latency Breakdown (Average per call):
+--------------------------------------------------------------------------------
+1. Preparation                               :     2.35 ms (min:   2.35, max:   2.38) (  1.7%)
+  Reshape tensor, prepare transpose and identity matrix
+2. Projection (BMM)                          :     2.20 ms (min:   2.18, max:   2.24) (  1.6%)
+  Random projection Y = X @ Omega
+3. Power Iteration (Total)                   :   109.67 ms (min:  96.95, max: 137.18) ( 78.0%)
+  Iteratively refine Y: X^T @ Y and X @ Z (includes all BMMs and QR)
+4. Final QR                                  :     6.03 ms (min:   5.85, max:   6.20) (  4.3%)
+  Orthonormalize Y to get Q (Cholesky QR or Householder fallback)
+5. Project to Low-rank (BMM)                 :     3.37 ms (min:   2.20, max:   3.84) (  2.4%)
+  Compute B = Q^T @ X
+6. Small SVD (FP32)                          :    16.43 ms (min:  14.76, max:  21.64) ( 11.7%)
+  Perform SVD on small matrix B
+7. Reconstruction (BMM)                      :     0.42 ms (min:   0.30, max:   0.48) (  0.3%)
+  Reconstruct U = Q @ U_hat
+
+Time Sum Verification:
+--------------------------------------------------------------------------------
+  Sum of 7 main stages:   140.46 ms
+  Total measured time:    140.59 ms
+  Difference:                0.12 ms (0.09%)
+  ✓ Time sum verification passed (difference < 1%)
+
+Sample Record Details:
+--------------------------------------------------------------------------------
+Tensor Shape: [1, 32, 65295, 128]
+Rank: 384
+Power Iterations (n_iter): 8
+Oversample: 4
+
+Breakdown (one sample):
+  1. Preparation: 2.35 ms
+  2. Projection (BMM): 2.24 ms
+  3. Power Iteration (Total): 110.94 ms
+  4. Final QR: 5.94 ms
+  5. Project to Low-rank (BMM): 3.67 ms
+  6. Small SVD (FP32): 19.07 ms
+  7. Reconstruction (BMM): 0.44 ms
+
+================================================================================
+End of Report
+================================================================================

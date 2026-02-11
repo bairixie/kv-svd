@@ -1,0 +1,134 @@
+/home/zm329/svd/xKV/.venv/lib/python3.11/site-packages/torch/cuda/__init__.py:61: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
+  import pynvml  # type: ignore[import]
+[Dist init] world_size=1
+data_names: ['ruler/vt']
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:02,  1.11it/s]
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.15it/s]
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.21it/s]
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.75it/s]
+Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.48it/s]
+Enabled xKV: True
+2026-02-10 02:24:56.738 | INFO     | xKV.customized_cache.fake_layer_merge_dynamic_cache:enable:55 - SVD 性能记录已启用: 输出文件=experiments/logs/layer_group_size_test_cholqr/xKV_LGS16_RK512_RV768_NITER8_svd_benchmark.json, SVD方法=randomized
+
+============================================================
+SVD 性能记录已启用
+  输出文件: experiments/logs/layer_group_size_test_cholqr/xKV_LGS16_RK512_RV768_NITER8_svd_benchmark.json
+  SVD方法: randomized
+  n_iter: 8, oversample: 4
+============================================================
+
+2026-02-10 02:24:56.739 | INFO     | utils:apply_kv_compress_patch:69 - Generating the kv compress configs
+2026-02-10 02:24:56.739 | INFO     | utils:apply_kv_compress_patch:74 - Generating the default merge config (consecutive)
+2026-02-10 02:24:56.739 | INFO     | utils:apply_kv_compress_patch:101 - Applying the patch to the model
+2026-02-10 02:24:56.740 | INFO     | xKV.patch:enable_xKV_patch:55 - Enabling xKV patch for model: ['LlamaForCausalLM']
+[Test] meta-llama/Meta-Llama-3.1-8B-Instruct on ruler/vt, results saved to temporary/Meta-Llama-3.1-8B-Instruct/ruler/vt_65536_xKV-16_k512_v768.jsonl
+
+Testing:   0%|          | 0/96 [00:00<?, ?it/s][rank0]: Traceback (most recent call last):
+[rank0]:   File "/home/zm329/svd/xKV/evaluate/eval_acc.py", line 236, in <module>
+[rank0]:     evaluator.test(model, tokenizer, dataset, archive_path)
+[rank0]:   File "/home/zm329/svd/xKV/evaluate/evaluator.py", line 126, in test
+[rank0]:     rets = llm.generate(**(prompt.to(llm.device)), max_new_tokens=dataset.gen_len, top_p=1.0, temperature=0.0, do_sample=False, pad_token_id=tokenizer.eos_token_id)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/zm329/svd/xKV/.venv/lib/python3.11/site-packages/torch/utils/_contextlib.py", line 116, in decorate_context
+[rank0]:     return func(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/zm329/svd/xKV/.venv/lib/python3.11/site-packages/transformers/generation/utils.py", line 2460, in generate
+[rank0]:     result = self._sample(
+[rank0]:              ^^^^^^^^^^^^^
+[rank0]:   File "/home/zm329/svd/xKV/.venv/lib/python3.11/site-packages/transformers/generation/utils.py", line 3426, in _sample
+[rank0]:     outputs = self(**model_inputs, return_dict=True)
+[rank0]:               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/zm329/svd/xKV/.venv/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+[rank0]:     return self._call_impl(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/zm329/svd/xKV/.venv/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+[rank0]:     return forward_call(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/zm329/svd/xKV/.venv/lib/python3.11/site-packages/transformers/utils/generic.py", line 965, in wrapper
+[rank0]:     output = func(self, *args, **kwargs)
+[rank0]:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/zm329/svd/xKV/.venv/lib/python3.11/site-packages/transformers/utils/deprecation.py", line 172, in wrapped_func
+[rank0]:     return func(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/zm329/svd/xKV/.venv/lib/python3.11/site-packages/transformers/models/llama/modeling_llama.py", line 821, in forward
+[rank0]:     outputs: BaseModelOutputWithPast = self.model(
+[rank0]:                                        ^^^^^^^^^^^
+[rank0]:   File "/home/zm329/svd/xKV/.venv/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+[rank0]:     return self._call_impl(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/zm329/svd/xKV/.venv/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+[rank0]:     return forward_call(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/zm329/svd/xKV/.venv/lib/python3.11/site-packages/transformers/utils/generic.py", line 965, in wrapper
+[rank0]:     output = func(self, *args, **kwargs)
+[rank0]:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/zm329/svd/xKV/.venv/lib/python3.11/site-packages/transformers/models/llama/modeling_llama.py", line 571, in forward
+[rank0]:     layer_outputs = decoder_layer(
+[rank0]:                     ^^^^^^^^^^^^^^
+[rank0]:   File "/home/zm329/svd/xKV/.venv/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+[rank0]:     return self._call_impl(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/zm329/svd/xKV/.venv/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+[rank0]:     return forward_call(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/zm329/svd/xKV/.venv/lib/python3.11/site-packages/transformers/models/llama/modeling_llama.py", line 318, in forward
+[rank0]:     hidden_states, self_attn_weights = self.self_attn(
+[rank0]:                                        ^^^^^^^^^^^^^^^
+[rank0]:   File "/home/zm329/svd/xKV/.venv/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+[rank0]:     return self._call_impl(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/zm329/svd/xKV/.venv/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+[rank0]:     return forward_call(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/zm329/svd/xKV/xKV/attn_patch/llama.py", line 48, in xKV_llama_forward
+[rank0]:     past_key_value.update(key_states, value_states, self.layer_idx, mode='prefill', cos=cos, sin=sin)
+[rank0]:   File "/home/zm329/svd/xKV/xKV/customized_cache/fake_layer_merge_dynamic_cache.py", line 920, in update
+[rank0]:     self.grouped_layer_merging(layer_idx)
+[rank0]:   File "/home/zm329/svd/xKV/.venv/lib/python3.11/site-packages/torch/utils/_contextlib.py", line 116, in decorate_context
+[rank0]:     return func(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/zm329/svd/xKV/xKV/customized_cache/fake_layer_merge_dynamic_cache.py", line 965, in grouped_layer_merging
+[rank0]:     combined_value = fake_svd(
+[rank0]:                      ^^^^^^^^^
+[rank0]:   File "/home/zm329/svd/xKV/xKV/customized_cache/fake_layer_merge_dynamic_cache.py", line 794, in fake_svd
+[rank0]:     approx_tensor = torch.matmul(U_final, Vt_final) # (bs, sl, nh * hd)
+[rank0]:                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]: torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 3.99 GiB. GPU 0 has a total capacity of 47.41 GiB of which 2.55 GiB is free. Including non-PyTorch memory, this process has 44.85 GiB memory in use. Of the allocated memory 37.88 GiB is allocated by PyTorch, and 6.30 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+
+Testing:   0%|          | 0/96 [00:24<?, ?it/s]
+[rank0]:[W210 02:25:30.939318137 ProcessGroupNCCL.cpp:1496] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())
+E0210 02:25:31.527000 2231903 torch/distributed/elastic/multiprocessing/api.py:869] failed (exitcode: 1) local_rank: 0 (pid: 2231923) of binary: /home/zm329/svd/xKV/.venv/bin/python3
+Traceback (most recent call last):
+  File "/home/zm329/svd/xKV/.venv/bin/torchrun", line 10, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/zm329/svd/xKV/.venv/lib/python3.11/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 355, in wrapper
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/zm329/svd/xKV/.venv/lib/python3.11/site-packages/torch/distributed/run.py", line 918, in main
+    run(args)
+  File "/home/zm329/svd/xKV/.venv/lib/python3.11/site-packages/torch/distributed/run.py", line 909, in run
+    elastic_launch(
+  File "/home/zm329/svd/xKV/.venv/lib/python3.11/site-packages/torch/distributed/launcher/api.py", line 138, in __call__
+    return launch_agent(self._config, self._entrypoint, list(args))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/zm329/svd/xKV/.venv/lib/python3.11/site-packages/torch/distributed/launcher/api.py", line 269, in launch_agent
+    raise ChildFailedError(
+torch.distributed.elastic.multiprocessing.errors.ChildFailedError: 
+============================================================
+evaluate/eval_acc.py FAILED
+------------------------------------------------------------
+Failures:
+  <NO_OTHER_FAILURES>
+------------------------------------------------------------
+Root Cause (first observed failure):
+[0]:
+  time      : 2026-02-10_02:25:31
+  host      : en-cc-unicorn-compute-111.coecis.cornell.edu
+  rank      : 0 (local_rank: 0)
+  exitcode  : 1 (pid: 2231923)
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+============================================================
