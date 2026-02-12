@@ -296,3 +296,17 @@ All paths in this README assume the project root is:
 
 If you clone the repo elsewhere, simply `cd` into the new root before running the commands above.
 
+---
+
+## 6. Randomized SVD variants (cholqr_v1–v4)
+
+For a more algorithmic comparison of the four custom randomized SVD kernels used in our experiments, see:
+
+- `svd_methods/summary.log`
+
+In short:
+
+- **cholqr_v1**: baseline Cholesky‑QR with fixed jitter and QR fallback – fastest but numerically sensitive.
+- **cholqr_v2**: adds dynamic jitter, full `eigh`‑based SPD correction, and explicit normalization – very stable.
+- **cholqr_v3**: keeps v2’s stability while replacing full `eigh` with cheaper `eigvalsh`‑based shifts.
+- **cholqr_v4**: BF16‑oriented, trace‑scaled jitter, optional eigen‑clamping, and mixed‑precision normalization – used as the main kernel in our KV‑cache benchmarks.
