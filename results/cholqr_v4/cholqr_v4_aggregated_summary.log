@@ -1,0 +1,377 @@
+================================================================================
+Cholqr_v4 Aggregated SVD Statistics (per rank, with breakdown)
+================================================================================
+
+--------------------------------------------------------------------------------
+File: results/cholqr_v4/layer_group_size/xKV_LGS16_RK512_RV768_NITER8_svd_benchmark.json
+--------------------------------------------------------------------------------
+  Accuracy: 0.345833 | Total Test Time: 47:47
+
+  Method: randomized (Rank 512) (rank=512)
+    Count          : 192
+    Total Time     : 83852.97 ms
+    Average Time   :   436.73 ms
+    Min / Max Time :   391.95 ms /   479.17 ms
+    Average Breakdown per call:
+      - final_qr_ms                   :     9.50 ms
+      - power_iteration_ms            :   345.07 ms
+      - preparation_ms                :    10.16 ms
+      - project_to_lowrank_ms         :    17.63 ms
+      - projection_ms                 :    12.00 ms
+      - reconstruction_ms             :     0.71 ms
+      - small_svd_fp32_ms             :    41.50 ms
+
+  Method: randomized (Rank 768) (rank=768)
+    Count          : 192
+    Total Time     : 116646.53 ms
+    Average Time   :   607.53 ms
+    Min / Max Time :   538.62 ms /   643.23 ms
+    Average Breakdown per call:
+      - final_qr_ms                   :    15.86 ms
+      - power_iteration_ms            :   483.99 ms
+      - preparation_ms                :     9.36 ms
+      - project_to_lowrank_ms         :    23.17 ms
+      - projection_ms                 :    15.62 ms
+      - reconstruction_ms             :     1.14 ms
+      - small_svd_fp32_ms             :    58.34 ms
+
+
+--------------------------------------------------------------------------------
+File: results/cholqr_v4/layer_group_size/xKV_LGS2_RK512_RV768_NITER8_svd_benchmark.json
+--------------------------------------------------------------------------------
+  Accuracy: 0.922917 | Total Test Time: 54:01
+
+  Method: randomized (Rank 512) (rank=512)
+    Count          : 1536
+    Total Time     : 267179.65 ms
+    Average Time   :   173.95 ms
+    Min / Max Time :   164.35 ms /   236.84 ms
+    Average Breakdown per call:
+      - final_qr_ms                   :     8.35 ms
+      - power_iteration_ms            :   130.18 ms
+      - preparation_ms                :     1.20 ms
+      - project_to_lowrank_ms         :     2.03 ms
+      - projection_ms                 :     1.73 ms
+      - reconstruction_ms             :     1.22 ms
+      - small_svd_fp32_ms             :    29.16 ms
+
+  Method: randomized (Rank 768) (rank=768)
+    Count          : 1536
+    Total Time     : 394200.88 ms
+    Average Time   :   256.64 ms
+    Min / Max Time :   235.68 ms /   282.70 ms
+    Average Breakdown per call:
+      - final_qr_ms                   :    14.67 ms
+      - power_iteration_ms            :   191.98 ms
+      - preparation_ms                :     1.19 ms
+      - project_to_lowrank_ms         :     2.78 ms
+      - projection_ms                 :     2.08 ms
+      - reconstruction_ms             :     1.14 ms
+      - small_svd_fp32_ms             :    42.76 ms
+
+
+--------------------------------------------------------------------------------
+File: results/cholqr_v4/layer_group_size/xKV_LGS4_RK512_RV768_NITER8_svd_benchmark.json
+--------------------------------------------------------------------------------
+  Accuracy: 0.847917 | Total Test Time: 48:06
+
+  Method: randomized (Rank 512) (rank=512)
+    Count          : 768
+    Total Time     : 161031.13 ms
+    Average Time   :   209.68 ms
+    Min / Max Time :   194.10 ms /   262.95 ms
+    Average Breakdown per call:
+      - final_qr_ms                   :     8.55 ms
+      - power_iteration_ms            :   157.89 ms
+      - preparation_ms                :     2.37 ms
+      - project_to_lowrank_ms         :     4.11 ms
+      - projection_ms                 :     3.21 ms
+      - reconstruction_ms             :     1.19 ms
+      - small_svd_fp32_ms             :    32.27 ms
+
+  Method: randomized (Rank 768) (rank=768)
+    Count          : 768
+    Total Time     : 236668.54 ms
+    Average Time   :   308.16 ms
+    Min / Max Time :   281.40 ms /   338.02 ms
+    Average Breakdown per call:
+      - final_qr_ms                   :    15.04 ms
+      - power_iteration_ms            :   233.22 ms
+      - preparation_ms                :     2.35 ms
+      - project_to_lowrank_ms         :     5.66 ms
+      - projection_ms                 :     4.00 ms
+      - reconstruction_ms             :     1.14 ms
+      - small_svd_fp32_ms             :    46.69 ms
+
+
+--------------------------------------------------------------------------------
+File: results/cholqr_v4/layer_group_size/xKV_LGS8_RK512_RV768_NITER16_svd_benchmark.json
+--------------------------------------------------------------------------------
+  Accuracy: 0.312500 | Total Test Time: 51:19
+
+  Method: randomized (Rank 512) (rank=512)
+    Count          : 384
+    Total Time     : 193601.90 ms
+    Average Time   :   504.17 ms
+    Min / Max Time :   452.13 ms /   558.92 ms
+    Average Breakdown per call:
+      - final_qr_ms                   :     8.91 ms
+      - power_iteration_ms            :   439.56 ms
+      - preparation_ms                :     4.74 ms
+      - project_to_lowrank_ms         :     8.58 ms
+      - projection_ms                 :     6.20 ms
+      - reconstruction_ms             :     0.88 ms
+      - small_svd_fp32_ms             :    35.19 ms
+
+  Method: randomized (Rank 768) (rank=768)
+    Count          : 384
+    Total Time     : 278438.07 ms
+    Average Time   :   725.10 ms
+    Min / Max Time :   641.72 ms /   777.14 ms
+    Average Breakdown per call:
+      - final_qr_ms                   :    15.41 ms
+      - power_iteration_ms            :   637.04 ms
+      - preparation_ms                :     4.69 ms
+      - project_to_lowrank_ms         :    11.45 ms
+      - projection_ms                 :     7.88 ms
+      - reconstruction_ms             :     1.15 ms
+      - small_svd_fp32_ms             :    47.43 ms
+
+
+--------------------------------------------------------------------------------
+File: results/cholqr_v4/layer_group_size/xKV_LGS8_RK512_RV768_NITER8_svd_benchmark.json
+--------------------------------------------------------------------------------
+  Accuracy: 0.729167 | Total Test Time: 45:13
+
+  Method: randomized (Rank 512) (rank=512)
+    Count          : 384
+    Total Time     : 109045.79 ms
+    Average Time   :   283.97 ms
+    Min / Max Time :   256.74 ms /   329.14 ms
+    Average Breakdown per call:
+      - final_qr_ms                   :     8.91 ms
+      - power_iteration_ms            :   218.49 ms
+      - preparation_ms                :     4.73 ms
+      - project_to_lowrank_ms         :     8.56 ms
+      - projection_ms                 :     6.19 ms
+      - reconstruction_ms             :     0.87 ms
+      - small_svd_fp32_ms             :    36.12 ms
+
+  Method: randomized (Rank 768) (rank=768)
+    Count          : 384
+    Total Time     : 158311.87 ms
+    Average Time   :   412.27 ms
+    Min / Max Time :   367.18 ms /   440.53 ms
+    Average Breakdown per call:
+      - final_qr_ms                   :    15.43 ms
+      - power_iteration_ms            :   319.13 ms
+      - preparation_ms                :     4.69 ms
+      - project_to_lowrank_ms         :    11.42 ms
+      - projection_ms                 :     7.88 ms
+      - reconstruction_ms             :     1.14 ms
+      - small_svd_fp32_ms             :    52.52 ms
+
+
+--------------------------------------------------------------------------------
+File: results/cholqr_v4/power_iterations/xKV_LGS4_RK256_RV384_NITER16_svd_benchmark.json
+--------------------------------------------------------------------------------
+  Accuracy: 0.420833 | Total Test Time: 49:09
+
+  Method: randomized (Rank 256) (rank=256)
+    Count          : 768
+    Total Time     : 131310.64 ms
+    Average Time   :   170.98 ms
+    Min / Max Time :   153.99 ms /   243.49 ms
+    Average Breakdown per call:
+      - final_qr_ms                   :     3.62 ms
+      - power_iteration_ms            :   150.89 ms
+      - preparation_ms                :     2.38 ms
+      - project_to_lowrank_ms         :     2.48 ms
+      - projection_ms                 :     1.88 ms
+      - reconstruction_ms             :     0.26 ms
+      - small_svd_fp32_ms             :     9.37 ms
+
+  Method: randomized (Rank 384) (rank=384)
+    Count          : 768
+    Total Time     : 189158.81 ms
+    Average Time   :   246.30 ms
+    Min / Max Time :   223.86 ms /   436.57 ms
+    Average Breakdown per call:
+      - final_qr_ms                   :     6.01 ms
+      - power_iteration_ms            :   217.82 ms
+      - preparation_ms                :     2.35 ms
+      - project_to_lowrank_ms         :     3.36 ms
+      - projection_ms                 :     2.20 ms
+      - reconstruction_ms             :     0.42 ms
+      - small_svd_fp32_ms             :    14.07 ms
+
+
+--------------------------------------------------------------------------------
+File: results/cholqr_v4/power_iterations/xKV_LGS4_RK256_RV384_NITER2_svd_benchmark.json
+--------------------------------------------------------------------------------
+  Accuracy: 0.000000 | Total Test Time: 45:38
+
+  Method: randomized (Rank 256) (rank=256)
+    Count          : 768
+    Total Time     : 42268.64 ms
+    Average Time   :    55.04 ms
+    Min / Max Time :    41.46 ms /  1299.04 ms
+    Average Breakdown per call:
+      - final_qr_ms                   :     3.65 ms
+      - power_iteration_ms            :    29.24 ms
+      - preparation_ms                :     2.37 ms
+      - project_to_lowrank_ms         :     2.51 ms
+      - projection_ms                 :     1.87 ms
+      - reconstruction_ms             :     0.26 ms
+      - small_svd_fp32_ms             :    15.04 ms
+
+  Method: randomized (Rank 384) (rank=384)
+    Count          : 768
+    Total Time     : 56112.29 ms
+    Average Time   :    73.06 ms
+    Min / Max Time :    59.83 ms /  1057.81 ms
+    Average Breakdown per call:
+      - final_qr_ms                   :     5.86 ms
+      - power_iteration_ms            :    35.54 ms
+      - preparation_ms                :     2.35 ms
+      - project_to_lowrank_ms         :     3.29 ms
+      - projection_ms                 :     2.17 ms
+      - reconstruction_ms             :     0.41 ms
+      - small_svd_fp32_ms             :    23.37 ms
+
+
+--------------------------------------------------------------------------------
+File: results/cholqr_v4/power_iterations/xKV_LGS4_RK256_RV384_NITER4_svd_benchmark.json
+--------------------------------------------------------------------------------
+  Accuracy: 0.220833 | Total Test Time: 46:57
+
+  Method: randomized (Rank 256) (rank=256)
+    Count          : 768
+    Total Time     : 46842.85 ms
+    Average Time   :    60.99 ms
+    Min / Max Time :    55.13 ms /   550.76 ms
+    Average Breakdown per call:
+      - final_qr_ms                   :     3.64 ms
+      - power_iteration_ms            :    38.58 ms
+      - preparation_ms                :     2.38 ms
+      - project_to_lowrank_ms         :     2.49 ms
+      - projection_ms                 :     1.88 ms
+      - reconstruction_ms             :     0.26 ms
+      - small_svd_fp32_ms             :    11.67 ms
+
+  Method: randomized (Rank 384) (rank=384)
+    Count          : 768
+    Total Time     : 66510.63 ms
+    Average Time   :    86.60 ms
+    Min / Max Time :    80.00 ms /   270.94 ms
+    Average Breakdown per call:
+      - final_qr_ms                   :     5.98 ms
+      - power_iteration_ms            :    53.96 ms
+      - preparation_ms                :     2.35 ms
+      - project_to_lowrank_ms         :     3.34 ms
+      - projection_ms                 :     2.19 ms
+      - reconstruction_ms             :     0.42 ms
+      - small_svd_fp32_ms             :    18.30 ms
+
+
+--------------------------------------------------------------------------------
+File: results/cholqr_v4/power_iterations/xKV_LGS4_RK256_RV384_NITER8_svd_benchmark.json
+--------------------------------------------------------------------------------
+  Accuracy: 0.412500 | Total Test Time: 47:22
+
+  Method: randomized (Rank 256) (rank=256)
+    Count          : 768
+    Total Time     : 88451.64 ms
+    Average Time   :   115.17 ms
+    Min / Max Time :    87.30 ms /   649.57 ms
+    Average Breakdown per call:
+      - final_qr_ms                   :     3.62 ms
+      - power_iteration_ms            :    94.46 ms
+      - preparation_ms                :     2.38 ms
+      - project_to_lowrank_ms         :     2.48 ms
+      - projection_ms                 :     1.88 ms
+      - reconstruction_ms             :     0.26 ms
+      - small_svd_fp32_ms             :     9.99 ms
+
+  Method: randomized (Rank 384) (rank=384)
+    Count          : 768
+    Total Time     : 128953.20 ms
+    Average Time   :   167.91 ms
+    Min / Max Time :   127.19 ms /   817.20 ms
+    Average Breakdown per call:
+      - final_qr_ms                   :     6.00 ms
+      - power_iteration_ms            :   137.47 ms
+      - preparation_ms                :     2.35 ms
+      - project_to_lowrank_ms         :     3.35 ms
+      - projection_ms                 :     2.20 ms
+      - reconstruction_ms             :     0.42 ms
+      - small_svd_fp32_ms             :    16.04 ms
+
+
+--------------------------------------------------------------------------------
+File: results/cholqr_v4/power_iterations/xKV_LGS8_RK512_RV768_NITER2_svd_benchmark.json
+--------------------------------------------------------------------------------
+  Accuracy: 0.000000 | Total Test Time: 47:19
+
+  Method: randomized (Rank 512) (rank=512)
+    Count          : 384
+    Total Time     : 48843.67 ms
+    Average Time   :   127.20 ms
+    Min / Max Time :   115.36 ms /   327.75 ms
+    Average Breakdown per call:
+      - final_qr_ms                   :     9.12 ms
+      - power_iteration_ms            :    54.00 ms
+      - preparation_ms                :     4.74 ms
+      - project_to_lowrank_ms         :     8.73 ms
+      - projection_ms                 :     6.27 ms
+      - reconstruction_ms             :     4.11 ms
+      - small_svd_fp32_ms             :    40.11 ms
+
+  Method: randomized (Rank 768) (rank=768)
+    Count          : 384
+    Total Time     : 75069.34 ms
+    Average Time   :   195.49 ms
+    Min / Max Time :   184.24 ms /   203.10 ms
+    Average Breakdown per call:
+      - final_qr_ms                   :    15.67 ms
+      - power_iteration_ms            :    79.46 ms
+      - preparation_ms                :     4.69 ms
+      - project_to_lowrank_ms         :    11.60 ms
+      - projection_ms                 :     8.05 ms
+      - reconstruction_ms             :     1.15 ms
+      - small_svd_fp32_ms             :    74.81 ms
+
+
+--------------------------------------------------------------------------------
+File: results/cholqr_v4/power_iterations/xKV_LGS8_RK512_RV768_NITER4_svd_benchmark.json
+--------------------------------------------------------------------------------
+  Accuracy: 0.060417 | Total Test Time: 48:05
+
+  Method: randomized (Rank 512) (rank=512)
+    Count          : 384
+    Total Time     : 70281.64 ms
+    Average Time   :   183.03 ms
+    Min / Max Time :   162.82 ms /   315.35 ms
+    Average Breakdown per call:
+      - final_qr_ms                   :     9.04 ms
+      - power_iteration_ms            :   110.05 ms
+      - preparation_ms                :     4.73 ms
+      - project_to_lowrank_ms         :     8.68 ms
+      - projection_ms                 :     6.25 ms
+      - reconstruction_ms             :     4.39 ms
+      - small_svd_fp32_ms             :    39.77 ms
+
+  Method: randomized (Rank 768) (rank=768)
+    Count          : 384
+    Total Time     : 101423.88 ms
+    Average Time   :   264.12 ms
+    Min / Max Time :   239.20 ms /   280.09 ms
+    Average Breakdown per call:
+      - final_qr_ms                   :    15.69 ms
+      - power_iteration_ms            :   161.49 ms
+      - preparation_ms                :     4.69 ms
+      - project_to_lowrank_ms         :    11.61 ms
+      - projection_ms                 :     8.05 ms
+      - reconstruction_ms             :     1.15 ms
+      - small_svd_fp32_ms             :    61.38 ms
+

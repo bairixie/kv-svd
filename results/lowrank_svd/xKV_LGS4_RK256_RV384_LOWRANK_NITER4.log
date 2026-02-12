@@ -10,12 +10,12 @@ Loading checkpoint shards:  75%|███████▌  | 3/4 [00:03<00:01,  1
 Loading checkpoint shards: 100%|██████████| 4/4 [00:04<00:00,  1.16it/s]
 Loading checkpoint shards: 100%|██████████| 4/4 [00:04<00:00,  1.03s/it]
 Enabled xKV: True
-2026-02-05 20:51:42.344 | INFO     | xKV.customized_cache.fake_layer_merge_dynamic_cache:enable:55 - SVD 性能记录已启用: 输出文件=experiments/logs/svd_method_comparison/xKV_LGS4_RK256_RV384_LOWRANK_NITER4_svd_benchmark.json, SVD方法=lowrank_niter4
+2026-02-05 20:51:42.344 | INFO     | xKV.customized_cache.fake_layer_merge_dynamic_cache:enable:55 - SVD performance recording enabled: Output file=experiments/logs/svd_method_comparison/xKV_LGS4_RK256_RV384_LOWRANK_NITER4_svd_benchmark.json, SVD method=lowrank_niter4
 
 ============================================================
-SVD 性能记录已启用
-  输出文件: experiments/logs/svd_method_comparison/xKV_LGS4_RK256_RV384_LOWRANK_NITER4_svd_benchmark.json
-  SVD方法: lowrank_niter4
+SVD performance recording enabled
+  Output file: experiments/logs/svd_method_comparison/xKV_LGS4_RK256_RV384_LOWRANK_NITER4_svd_benchmark.json
+  SVD method: lowrank_niter4
   n_iter: 2, oversample: 4
 ============================================================
 
@@ -220,19 +220,19 @@ Testing: 100%|██████████| 96/96 [50:47<00:00, 31.05s/it, avg
 Testing: 100%|██████████| 96/96 [50:47<00:00, 31.05s/it, avg_score=0.398, max_memory (GB)=30.3]
 Testing: 100%|██████████| 96/96 [50:47<00:00, 31.75s/it, avg_score=0.398, max_memory (GB)=30.3]
 Results for ruler/vt: {'model': 'meta-llama/Meta-Llama-3.1-8B-Instruct', 'dataset': 'ruler/vt', 'baseline': 0.39791666666666675, 'samples': 96}
-2026-02-05 21:42:41.052 | INFO     | xKV.customized_cache.fake_layer_merge_dynamic_cache:save:112 - SVD 性能记录已保存到: experiments/logs/svd_method_comparison/xKV_LGS4_RK256_RV384_LOWRANK_NITER4_svd_benchmark.json
+2026-02-05 21:42:41.052 | INFO     | xKV.customized_cache.fake_layer_merge_dynamic_cache:save:112 - SVD performance record saved to: experiments/logs/svd_method_comparison/xKV_LGS4_RK256_RV384_LOWRANK_NITER4_svd_benchmark.json
 
 ============================================================
-SVD 性能统计:
+SVD Performance Statistics:
 ============================================================
 
 Lowrank SVD (torch.svd_lowrank, niter=4):
-  调用次数: 1536
-  平均时间: 256.81 ms
-  总时间: 394454.87 ms (394.45 s)
-  最小/最大: 198.48 / 314.29 ms
+  Total Calls: 1536
+  Average Time: 256.81 ms
+  Total Time: 394454.87 ms (394.45 s)
+  Min/Max: 198.48 / 314.29 ms
 
-详细记录已保存到: experiments/logs/svd_method_comparison/xKV_LGS4_RK256_RV384_LOWRANK_NITER4_svd_benchmark.json
+Detailed records saved to: experiments/logs/svd_method_comparison/xKV_LGS4_RK256_RV384_LOWRANK_NITER4_svd_benchmark.json
 ============================================================
 
 | model                                 | dataset   |   baseline |   samples |

@@ -6,7 +6,7 @@ def chol_qr(
     eye_fp32,
     base_eps=1e-6,
     max_eps=10.0,
-    max_tries=2,
+    max_tries=4,
     use_eigh_last=True,
     fallback_to_qr=True,   
 ):
@@ -56,7 +56,7 @@ def chol_qr(
 
 @torch.no_grad()
 def randomized_svd_bf16_cholqr(tensor_reshaped, rank, n_iter=8, oversample=4, 
-                              base_eps=1e-6, max_eps=10.0, max_tries=6, use_eigh_last=True, breakdown=None):
+                              base_eps=1e-6, max_eps=10.0, max_tries=4, use_eigh_last=True, breakdown=None):
     device = tensor_reshaped.device
 
     bs, sl, n = tensor_reshaped.shape

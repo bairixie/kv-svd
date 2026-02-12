@@ -10,11 +10,11 @@ Loading checkpoint shards:  75%|███████▌  | 3/4 [00:03<00:01,  1
 Loading checkpoint shards: 100%|██████████| 4/4 [00:03<00:00,  1.34it/s]
 Loading checkpoint shards: 100%|██████████| 4/4 [00:03<00:00,  1.12it/s]
 Enabled xKV: True
-2026-02-05 15:14:50.599 | INFO     | xKV.customized_cache.fake_layer_merge_dynamic_cache:enable:43 - SVD 性能记录已启用: 输出文件=experiments/logs/power_iterations_test/xKV_LGS4_RK256_RV384_NITER16_svd_benchmark.json, 使用原始SVD=False
+2026-02-05 15:14:50.599 | INFO     | xKV.customized_cache.fake_layer_merge_dynamic_cache:enable:43 - SVD performance recording enabled: Output file=experiments/logs/power_iterations_test/xKV_LGS4_RK256_RV384_NITER16_svd_benchmark.json, 使用原始SVD=False
 
 ============================================================
-SVD 性能记录已启用
-  输出文件: experiments/logs/power_iterations_test/xKV_LGS4_RK256_RV384_NITER16_svd_benchmark.json
+SVD performance recording enabled
+  Output file: experiments/logs/power_iterations_test/xKV_LGS4_RK256_RV384_NITER16_svd_benchmark.json
   使用原始SVD: False
   n_iter: 16, oversample: 4
 ============================================================
@@ -220,19 +220,19 @@ Testing: 100%|██████████| 96/96 [53:27<00:00, 32.72s/it, avg
 Testing: 100%|██████████| 96/96 [53:27<00:00, 32.72s/it, avg_score=0.425, max_memory (GB)=30.3]
 Testing: 100%|██████████| 96/96 [53:27<00:00, 33.42s/it, avg_score=0.425, max_memory (GB)=30.3]
 Results for ruler/vt: {'model': 'meta-llama/Meta-Llama-3.1-8B-Instruct', 'dataset': 'ruler/vt', 'baseline': 0.42500000000000004, 'samples': 96}
-2026-02-05 16:08:27.518 | INFO     | xKV.customized_cache.fake_layer_merge_dynamic_cache:save:99 - SVD 性能记录已保存到: experiments/logs/power_iterations_test/xKV_LGS4_RK256_RV384_NITER16_svd_benchmark.json
+2026-02-05 16:08:27.518 | INFO     | xKV.customized_cache.fake_layer_merge_dynamic_cache:save:99 - SVD performance record saved to: experiments/logs/power_iterations_test/xKV_LGS4_RK256_RV384_NITER16_svd_benchmark.json
 
 ============================================================
-SVD 性能统计:
+SVD Performance Statistics:
 ============================================================
 
 Custom Randomized SVD:
-  调用次数: 1536
-  平均时间: 398.86 ms
-  总时间: 612643.59 ms (612.64 s)
-  最小/最大: 204.48 / 718.30 ms
+  Total Calls: 1536
+  Average Time: 398.86 ms
+  Total Time: 612643.59 ms (612.64 s)
+  Min/Max: 204.48 / 718.30 ms
 
-详细记录已保存到: experiments/logs/power_iterations_test/xKV_LGS4_RK256_RV384_NITER16_svd_benchmark.json
+Detailed records saved to: experiments/logs/power_iterations_test/xKV_LGS4_RK256_RV384_NITER16_svd_benchmark.json
 ============================================================
 
 | model                                 | dataset   |   baseline |   samples |

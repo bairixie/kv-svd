@@ -10,12 +10,12 @@ Loading checkpoint shards:  75%|███████▌  | 3/4 [00:03<00:01,  1
 Loading checkpoint shards: 100%|██████████| 4/4 [00:04<00:00,  1.17it/s]
 Loading checkpoint shards: 100%|██████████| 4/4 [00:04<00:00,  1.02s/it]
 Enabled xKV: True
-2026-02-05 17:22:26.803 | INFO     | xKV.customized_cache.fake_layer_merge_dynamic_cache:enable:55 - SVD 性能记录已启用: 输出文件=experiments/logs/svd_method_comparison/xKV_LGS4_RK256_RV384_FULL_SVD_svd_benchmark.json, SVD方法=full_svd
+2026-02-05 17:22:26.803 | INFO     | xKV.customized_cache.fake_layer_merge_dynamic_cache:enable:55 - SVD performance recording enabled: Output file=experiments/logs/svd_method_comparison/xKV_LGS4_RK256_RV384_FULL_SVD_svd_benchmark.json, SVD method=full_svd
 
 ============================================================
-SVD 性能记录已启用
-  输出文件: experiments/logs/svd_method_comparison/xKV_LGS4_RK256_RV384_FULL_SVD_svd_benchmark.json
-  SVD方法: full_svd
+SVD performance recording enabled
+  Output file: experiments/logs/svd_method_comparison/xKV_LGS4_RK256_RV384_FULL_SVD_svd_benchmark.json
+  SVD method: full_svd
   n_iter: 2, oversample: 4
 ============================================================
 
@@ -220,19 +220,19 @@ Testing: 100%|██████████| 96/96 [2:32:48<00:00, 95.22s/it, a
 Testing: 100%|██████████| 96/96 [2:32:48<00:00, 95.22s/it, avg_score=0.415, max_memory (GB)=31.7]
 Testing: 100%|██████████| 96/96 [2:32:48<00:00, 95.51s/it, avg_score=0.415, max_memory (GB)=31.7]
 Results for ruler/vt: {'model': 'meta-llama/Meta-Llama-3.1-8B-Instruct', 'dataset': 'ruler/vt', 'baseline': 0.41458333333333336, 'samples': 96}
-2026-02-05 19:55:26.353 | INFO     | xKV.customized_cache.fake_layer_merge_dynamic_cache:save:112 - SVD 性能记录已保存到: experiments/logs/svd_method_comparison/xKV_LGS4_RK256_RV384_FULL_SVD_svd_benchmark.json
+2026-02-05 19:55:26.353 | INFO     | xKV.customized_cache.fake_layer_merge_dynamic_cache:save:112 - SVD performance record saved to: experiments/logs/svd_method_comparison/xKV_LGS4_RK256_RV384_FULL_SVD_svd_benchmark.json
 
 ============================================================
-SVD 性能统计:
+SVD Performance Statistics:
 ============================================================
 
 Full SVD (torch.linalg.svd):
-  调用次数: 1536
-  平均时间: 4246.73 ms
-  总时间: 6522972.53 ms (6522.97 s)
-  最小/最大: 3590.66 / 6388.57 ms
+  Total Calls: 1536
+  Average Time: 4246.73 ms
+  Total Time: 6522972.53 ms (6522.97 s)
+  Min/Max: 3590.66 / 6388.57 ms
 
-详细记录已保存到: experiments/logs/svd_method_comparison/xKV_LGS4_RK256_RV384_FULL_SVD_svd_benchmark.json
+Detailed records saved to: experiments/logs/svd_method_comparison/xKV_LGS4_RK256_RV384_FULL_SVD_svd_benchmark.json
 ============================================================
 
 | model                                 | dataset   |   baseline |   samples |

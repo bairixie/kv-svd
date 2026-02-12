@@ -1,0 +1,92 @@
+# Randomized SVD Implementation Comparison (v1-v4)
+
+## 📋 Overall Summary
+
+All versions implement a **randomized SVD** with power iteration and Cholesky‑based QR, but they evolve in three key dimensions:
+
+1. **Gram Matrix Construction:** How  is built and regularized.
+2. **Numerical Stability:** The use of dynamic jitter, normalization, and eigen-based corrections.
+3. **Logging & Scope:** The depth of latency breakdown and optimization for BF16/large-scale experiments.
+
+---
+
+## 🚀 Version Matrix
+
+| Version | Key Strategy | Stability Mechanism | Performance |
+| --- | --- | --- | --- |
+| **v1** | Basic Cholesky QR | Fixed Jitter + QR Fallback | Fastest, but sensitive |
+| **v2** | Robust Cholesky | Dynamic Jitter + `eigh` Correction | High stability, smoother curves |
+| **v3** | Optimized Correction | `eigvalsh` + Shift | v2 stability with lower overhead |
+| **v4** | Production-Ready | Trace-based Scaling + BF16 Optimized | Best for high-rank / BF16 |
+
+---
+
+## 🔍 Detailed Algorithmic Breakdown
+
+### 1. `random_cholesky_v1.py` — Simple Regularization
+
+* **Characteristics:**
+* Uses `chol_qr_hybrid`: Computes  with a fixed `reg_eps`.
+* **Fallback:** If Cholesky fails, it falls back directly to `torch.linalg.qr`.
+* **Power Iteration:** Repeatedly applies  in BF16 without explicit per-iteration normalization.
+
+
+* **Empirical Behavior:**
+* Low latency, dominated by BMMs.
+* Accuracy can be sensitive to rank/LGS configurations due to the lack of normalization.
+
+
+
+### 2. `random_cholesky_v2.py` — Dynamic Jitter & Eigen-Correction
+
+* **Characteristics:**
+* **Gram Matrix:** Symmetrized .
+* **Jitter:** Uses diagonal-based scaling and a loop (`max_tries`) with increasing .
+* **SPD Correction:** Uses `torch.linalg.eigh(G)` to reconstruct a strictly SPD matrix if jitter fails.
+* **Normalization:** Explicit vector-norm normalization of  after each power iteration.
+
+
+* **Empirical Behavior:**
+* Slightly higher latency than v1 but significantly smoother accuracy curves.
+* Stable "Power Iteration" breakdown logs with no numerical "spikes."
+
+
+
+### 3. `random_cholesky_v3.py` — Cheaper SPD Correction
+
+* **Characteristics:**
+* Similar to v2 (symmetrization + dynamic jitter).
+* **Optimization:** Replaces full `eigh` with `torch.linalg.eigvalsh(G)` to compute a minimum eigenvalue shift.
+* **SPD Fix:** Applies Cholesky to  instead of full eigen-reconstruction.
+
+
+* **Empirical Behavior:**
+* Latency is lower than v2 in cases where SPD correction triggers.
+* Accuracy matches v2 performance levels.
+
+
+
+### 4. `random_cholesky_v4.py` — Refined BF16 Randomized SVD
+
+* **Characteristics:**
+* **Improved Scaling:** Uses trace-like statistics (mean diagonal) for jitter scaling.
+* **Eigen-Clamping:** In `eigh` mode, it clamps eigenvalues below a threshold (e.g., ) before rebuilding .
+* **Interface:** Specifically optimized for 3D tensors  and BF16 storage.
+* **Hybrid Precision:** Normalization performed in FP32 then cast back to BF16 for stability.
+
+
+* **Empirical Behavior:**
+* **Latency vs Iteration:** Grows linearly with `n_iter`.
+* **Accuracy:** Shows sharp improvement from `n_iter=2` to `8`, then saturates.
+* **LGS Sweeps:** Clearly demonstrates the trade-off where larger LGS values increase latency and decrease accuracy.
+
+
+
+---
+
+## 📈 Cross-Version Conclusion
+
+All versions share the core structure of **BF16 BMMs** and **Small FP32 SVD**. While **v1** is a baseline, **v2** and **v3** introduced the robustness required for production numerical tasks. **v4** represents the most refined iteration, combining dynamic jitter, eigen-spectrum corrections, and high-fidelity logging for complex experimental sweeps.
+
+---
+

@@ -10,12 +10,12 @@ Loading checkpoint shards:  75%|███████▌  | 3/4 [00:03<00:01,  1
 Loading checkpoint shards: 100%|██████████| 4/4 [00:04<00:00,  1.15it/s]
 Loading checkpoint shards: 100%|██████████| 4/4 [00:04<00:00,  1.04s/it]
 Enabled xKV: True
-2026-02-10 03:04:24.419 | INFO     | xKV.customized_cache.fake_layer_merge_dynamic_cache:enable:55 - SVD 性能记录已启用: 输出文件=experiments/logs/power_iterations_test_cholqr/xKV_LGS8_RK512_RV768_NITER4_svd_benchmark.json, SVD方法=randomized
+2026-02-10 03:04:24.419 | INFO     | xKV.customized_cache.fake_layer_merge_dynamic_cache:enable:55 - SVD performance recording enabled: Output file=experiments/logs/power_iterations_test_cholqr/xKV_LGS8_RK512_RV768_NITER4_svd_benchmark.json, SVD method=randomized
 
 ============================================================
-SVD 性能记录已启用
-  输出文件: experiments/logs/power_iterations_test_cholqr/xKV_LGS8_RK512_RV768_NITER4_svd_benchmark.json
-  SVD方法: randomized
+SVD performance recording enabled
+  Output file: experiments/logs/power_iterations_test_cholqr/xKV_LGS8_RK512_RV768_NITER4_svd_benchmark.json
+  SVD method: randomized
   n_iter: 4, oversample: 4
 ============================================================
 
@@ -220,7 +220,7 @@ Testing: 100%|██████████| 96/96 [48:18<00:00, 30.36s/it, avg
 Testing: 100%|██████████| 96/96 [48:18<00:00, 30.36s/it, avg_score=0.0854, max_memory (GB)=33.9]
 Testing: 100%|██████████| 96/96 [48:18<00:00, 30.20s/it, avg_score=0.0854, max_memory (GB)=33.9]
 Results for ruler/vt: {'model': 'meta-llama/Meta-Llama-3.1-8B-Instruct', 'dataset': 'ruler/vt', 'baseline': 0.0854166666666667, 'samples': 96}
-2026-02-10 03:52:53.738 | INFO     | xKV.customized_cache.fake_layer_merge_dynamic_cache:save:201 - SVD 性能记录已保存到: experiments/logs/power_iterations_test_cholqr/xKV_LGS8_RK512_RV768_NITER4_svd_benchmark.json
+2026-02-10 03:52:53.738 | INFO     | xKV.customized_cache.fake_layer_merge_dynamic_cache:save:201 - SVD performance record saved to: experiments/logs/power_iterations_test_cholqr/xKV_LGS8_RK512_RV768_NITER4_svd_benchmark.json
 2026-02-10 03:52:53.740 | INFO     | xKV.customized_cache.fake_layer_merge_dynamic_cache:_write_simplified_breakdown_log:319 - Simplified breakdown log saved to: experiments/logs/power_iterations_test_cholqr/xKV_LGS8_RK512_RV768_NITER4_svd_benchmark_breakdown.log
 
 ============================================================
