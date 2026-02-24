@@ -956,10 +956,17 @@ def plot_power_iteration_comparison(
     plt.tight_layout()
     
     # Save to plot directory
-    if is_lgs_comparison:
-        out_path = repo_root / "plot" / f"fig_layer_group_size_comparison_{algorithm}_RK{target_rank}_RV{target_rv}_NITER{target_niter}.png"
+    # For cholqr_v3 and cholqr_v4, save to their dedicated subdirectories
+    if algorithm in ["cholqr_v3", "cholqr_v4"]:
+        if is_lgs_comparison:
+            out_path = repo_root / "plot" / algorithm / f"fig_{algorithm}_layer_groups_RK{target_rank}_RV{target_rv}_NITER{target_niter}.png"
+        else:
+            out_path = repo_root / "plot" / algorithm / f"fig_{algorithm}_power_iteration_LGS{target_lgs}_RK{target_rank}_RV{target_rv}.png"
     else:
-        out_path = repo_root / "plot" / f"fig_power_iteration_comparison_{algorithm}_LGS{target_lgs}_RK{target_rank}_RV{target_rv}.png"
+        if is_lgs_comparison:
+            out_path = repo_root / "plot" / f"fig_layer_group_size_comparison_{algorithm}_RK{target_rank}_RV{target_rv}_NITER{target_niter}.png"
+        else:
+            out_path = repo_root / "plot" / f"fig_power_iteration_comparison_{algorithm}_LGS{target_lgs}_RK{target_rank}_RV{target_rv}.png"
     out_path.parent.mkdir(parents=True, exist_ok=True)
     plt.savefig(out_path, bbox_inches="tight")
     plt.close()

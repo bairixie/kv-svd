@@ -1,0 +1,219 @@
+{
+    "dataset": "ruler/vt",
+    "num_samples": 20,
+    "profiler_schedule": {
+      "warmup_steps": 5,
+      "profile_steps": 10
+    },
+    "config": {
+      "layer_group_size": 4,
+      "rank_k": 256,
+      "rank_v": 384,
+      "n_iter": 4,
+      "oversample": 4,
+      "datalen": 65536
+    },
+    "outputs": "experiments/prof_v5_LGS4_RK256_RV384_it4_s20/vt/outputs__svd_v5__ruler_vt.jsonl",
+    "trace": "experiments/prof_v5_LGS4_RK256_RV384_it4_s20/vt/traces/trace.json",
+    "table": "experiments/prof_v5_LGS4_RK256_RV384_it4_s20/vt/prof_table.txt",
+    "svd_v5_breakdown": [
+      {
+        "name": "svd_v5/call",
+        "count": 160,
+        "cpu_time_total_us": 226040468.64499995,
+        "device_time_total_us": 11417485.489000183
+      },
+      {
+        "name": "svd_v5/total",
+        "count": 160,
+        "cpu_time_total_us": 226035132.6650001,
+        "device_time_total_us": 11417485.489000183
+      },
+      {
+        "name": "svd_v5/power_iteration/total",
+        "count": 160,
+        "cpu_time_total_us": 7327745.584000135,
+        "device_time_total_us": 7212461.076000803
+      },
+      {
+        "name": "svd_v5/chol_qr/total",
+        "count": 1440,
+        "cpu_time_total_us": 222619819.77299982,
+        "device_time_total_us": 5219036.623000051
+      },
+      {
+        "name": "svd_v5/chol_qr/jitter_loop",
+        "count": 1440,
+        "cpu_time_total_us": 222248046.34999973,
+        "device_time_total_us": 4172076.600998989
+      },
+      {
+        "name": "svd_v5/chol_qr/jitter_loop",
+        "count": 1440,
+        "cpu_time_total_us": 0.0,
+        "device_time_total_us": 3845842.558999933
+      },
+      {
+        "name": "svd_v5/power_iteration/qr2",
+        "count": 640,
+        "cpu_time_total_us": 2475539.6749999383,
+        "device_time_total_us": 3828332.4120008117
+      },
+      {
+        "name": "svd_v5/chol_qr/solve_triangular",
+        "count": 1440,
+        "cpu_time_total_us": 0.0,
+        "device_time_total_us": 3594941.8629997633
+      },
+      {
+        "name": "svd_v5/chol_qr/solve_triangular",
+        "count": 1440,
+        "cpu_time_total_us": 183042.87399989646,
+        "device_time_total_us": 3583039.7110006567
+      },
+      {
+        "name": "svd_v5/small_svd_fp32",
+        "count": 160,
+        "cpu_time_total_us": 0.0,
+        "device_time_total_us": 2135595.0619999957
+      },
+      {
+        "name": "svd_v5/small_svd_fp32",
+        "count": 160,
+        "cpu_time_total_us": 3244751.2389999623,
+        "device_time_total_us": 2080493.3459993275
+      },
+      {
+        "name": "svd_v5/power_iteration/at_q",
+        "count": 640,
+        "cpu_time_total_us": 0.0,
+        "device_time_total_us": 1660193.9110001111
+      },
+      {
+        "name": "svd_v5/power_iteration/at_q",
+        "count": 640,
+        "cpu_time_total_us": 33377.753999929875,
+        "device_time_total_us": 1659204.084000032
+      },
+      {
+        "name": "svd_v5/power_iteration/a_q",
+        "count": 640,
+        "cpu_time_total_us": 23095.038999801036,
+        "device_time_total_us": 1302370.3900003429
+      },
+      {
+        "name": "svd_v5/power_iteration/a_q",
+        "count": 640,
+        "cpu_time_total_us": 0.0,
+        "device_time_total_us": 1302370.3900003429
+      },
+      {
+        "name": "svd_v5/projection",
+        "count": 160,
+        "cpu_time_total_us": 215404883.675,
+        "device_time_total_us": 1287575.399999754
+      },
+      {
+        "name": "svd_v5/chol_qr/gram",
+        "count": 1440,
+        "cpu_time_total_us": 0.0,
+        "device_time_total_us": 885879.0969998776
+      },
+      {
+        "name": "svd_v5/chol_qr/gram",
+        "count": 1440,
+        "cpu_time_total_us": 232492.6810009278,
+        "device_time_total_us": 881573.6750000217
+      },
+      {
+        "name": "svd_v5/chol_qr/cholesky_ex",
+        "count": 1442,
+        "cpu_time_total_us": 0.0,
+        "device_time_total_us": 470209.62199967867
+      },
+      {
+        "name": "svd_v5/chol_qr/cholesky_ex",
+        "count": 1442,
+        "cpu_time_total_us": 261347.31899938948,
+        "device_time_total_us": 428110.5149981179
+      },
+      {
+        "name": "svd_v5/power_iteration/qr1",
+        "count": 640,
+        "cpu_time_total_us": 4784625.127000041,
+        "device_time_total_us": 422554.1899996167
+      },
+      {
+        "name": "svd_v5/project_to_lowrank",
+        "count": 160,
+        "cpu_time_total_us": 0.0,
+        "device_time_total_us": 413521.1459999955
+      },
+      {
+        "name": "svd_v5/project_to_lowrank",
+        "count": 160,
+        "cpu_time_total_us": 7254.70599992387,
+        "device_time_total_us": 413239.4429999683
+      },
+      {
+        "name": "svd_v5/prep",
+        "count": 160,
+        "cpu_time_total_us": 0.0,
+        "device_time_total_us": 375102.0580000491
+      },
+      {
+        "name": "svd_v5/prep",
+        "count": 160,
+        "cpu_time_total_us": 18687.606999850992,
+        "device_time_total_us": 374777.86700016214
+      },
+      {
+        "name": "svd_v5/projection",
+        "count": 160,
+        "cpu_time_total_us": 0.0,
+        "device_time_total_us": 319563.4910000395
+      },
+      {
+        "name": "svd_v5/chol_qr/to_fp32",
+        "count": 1440,
+        "cpu_time_total_us": 39436.001999909604,
+        "device_time_total_us": 157440.08600028185
+      },
+      {
+        "name": "svd_v5/chol_qr/to_fp32",
+        "count": 1440,
+        "cpu_time_total_us": 0.0,
+        "device_time_total_us": 157440.08600028185
+      },
+      {
+        "name": "svd_v5/reconstruction",
+        "count": 160,
+        "cpu_time_total_us": 0.0,
+        "device_time_total_us": 51290.31799994595
+      },
+      {
+        "name": "svd_v5/reconstruction",
+        "count": 160,
+        "cpu_time_total_us": 10817.087999815587,
+        "device_time_total_us": 46516.93200000329
+      },
+      {
+        "name": "svd_v5/chol_qr/scale",
+        "count": 1440,
+        "cpu_time_total_us": 0.0,
+        "device_time_total_us": 9144.522000547033
+      },
+      {
+        "name": "svd_v5/chol_qr/scale",
+        "count": 1440,
+        "cpu_time_total_us": 70507.47600042672,
+        "device_time_total_us": 7939.732000714634
+      },
+      {
+        "name": "svd_v5/total",
+        "count": 160,
+        "cpu_time_total_us": 0.0,
+        "device_time_total_us": 2642.6460000453517
+      }
+    ]
+  }

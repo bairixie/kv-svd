@@ -1,0 +1,38 @@
+[Dist init] world_size=1
+data_names: ['ruler/vt']
+Loading checkpoint shards: 100%|█████████████████████████████████████████████| 4/4 [00:03<00:00,  1.16it/s]
+Enabled xKV: True
+SVD benchmark enabled: method=svd_v1, output=experiments/svd_v1_new_acc.json
+2026-02-23 01:05:15.686 | INFO     | utils:apply_kv_compress_patch:69 - Generating the kv compress configs
+2026-02-23 01:05:15.686 | INFO     | utils:apply_kv_compress_patch:74 - Generating the default merge config (consecutive)
+2026-02-23 01:05:15.686 | INFO     | utils:apply_kv_compress_patch:99 - compression config: xKVConfig(
+  # Global params:
+  num_layers=32,
+  layer_merge_impl='svd',
+  rank_k=256, rank_v=384,
+  n_iter=4, oversample=4,
+  slerp_t=0.5, slerp_gamma=0.05,
+  merge_key=True, merge_value=True,
+  # Quantizer params:
+  kv_bits=16, group_size=0,
+  sym=False, clip_ratio=1.0, hadamard=False,
+  # 8 groups:
+    [0] -> LayerGroup(layers=[0, 1, 2, 3], rank_k=256, rank_v=384, slerp_t=None, slerp_gamma=None)
+    [1] -> LayerGroup(layers=[4, 5, 6, 7], rank_k=256, rank_v=384, slerp_t=None, slerp_gamma=None)
+    [2] -> LayerGroup(layers=[8, 9, 10, 11], rank_k=256, rank_v=384, slerp_t=None, slerp_gamma=None)
+    [3] -> LayerGroup(layers=[12, 13, 14, 15], rank_k=256, rank_v=384, slerp_t=None, slerp_gamma=None)
+    [4] -> LayerGroup(layers=[16, 17, 18, 19], rank_k=256, rank_v=384, slerp_t=None, slerp_gamma=None)
+    [5] -> LayerGroup(layers=[20, 21, 22, 23], rank_k=256, rank_v=384, slerp_t=None, slerp_gamma=None)
+    [6] -> LayerGroup(layers=[24, 25, 26, 27], rank_k=256, rank_v=384, slerp_t=None, slerp_gamma=None)
+    [7] -> LayerGroup(layers=[28, 29, 30, 31], rank_k=256, rank_v=384, slerp_t=None, slerp_gamma=None)
+)
+2026-02-23 01:05:15.686 | INFO     | utils:apply_kv_compress_patch:100 - Applying the patch to the model
+2026-02-23 01:05:15.687 | INFO     | xKV.patch:enable_xKV_patch:55 - Enabling xKV patch for model: ['LlamaForCausalLM']
+[Test] meta-llama/Meta-Llama-3.1-8B-Instruct on ruler/vt, results saved to temporary/Meta-Llama-3.1-8B-Instruct/ruler/vt_65536_xKV-4_k256_v384.jsonl
+Testing: 100%|██████████████████████| 96/96 [45:33<00:00, 28.48s/it, avg_score=0.433, max_memory (GB)=30.3]
+Results for ruler/vt: {'model': 'meta-llama/Meta-Llama-3.1-8B-Instruct', 'dataset': 'ruler/vt', 'samples': 96, 'baseline': 0.43333333333333335}
+SVD benchmark saved to experiments/svd_v1_new_acc.json
+| model                                 | dataset   |   samples |   baseline |
+|:--------------------------------------|:----------|----------:|-----------:|
+| meta-llama/Meta-Llama-3.1-8B-Instruct | ruler/vt  |        96 |   0.433333 |
+| mean                                  | mean      |        96 |   0.433333 |

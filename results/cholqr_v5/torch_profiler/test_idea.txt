@@ -1,0 +1,13 @@
+我用 PyTorch torch.profiler 在完整推理流程里profile（不是单独跑 SVD kernel），因为 xKV 的 SVD 是在 prefill 时 cache merge里触发的。
+为避免冷启动/trace 过大导致的时间偏差，我用 profiler schedule：先跑若干 sample 预热（warmup），再只对中间一段 sample 开启 profiler（active），
+这样采到的是 steady-state 的 CUDA 时间，同时不会因为一直开 profiler 影响速度。实现上我在 Evaluator.test() 里给 
+profiler 一个 per-sample step hook（每处理完一个 sample 调 prof.step()），让 schedule 精确按 sample 计步。每个 dataset 
+我跑固定 num_samples（比如 20），其中 warmup 5、active 10。输出包括：1) trace.json（Chrome trace，能看到 CUDA kernel/算子时间），2) 
+prof_table.txt（prof.key_averages() 的 top-ops 表，按 CUDA/device time 排序），3) prof_summary.json
+（记录运行配置：dataset、datalen、LGS、rank_k/v、n_iter、warmup/active 等）。如果需要更细的“阶段级”分解（比如 power iteration/Cholesky-QR/small SVD），
+我用 record_function("svd_v5/...") 做区间标注，让 profiler 把这些阶段聚合成可直接读的段落时间（不改变算法和 dtype）。
+
+	•	例如：profile_svd_v5_only.py --dataset_name ruler/vt --num_samples 20 --warmup_steps 5 --profile_steps 10 --layer_group_size 4 --rank_k 256 --rank_v 384 --n_iter 4 --output_dir ...
+
+以及你解释“为什么不是全程开 profiler”：
+	•	全程会显著增加 tracing 开销、文件爆炸、并且扭曲时间；schedule 只采 steady-state 更合理。
