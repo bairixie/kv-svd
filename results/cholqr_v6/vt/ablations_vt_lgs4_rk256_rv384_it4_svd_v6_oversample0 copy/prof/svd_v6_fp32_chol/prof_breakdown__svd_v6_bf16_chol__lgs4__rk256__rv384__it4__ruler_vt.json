@@ -1,0 +1,67 @@
+{
+  "stage:back_projection": {
+    "count": 3072,
+    "cpu_us": 130505,
+    "cuda_us": 2177319
+  },
+  "stage:cleanup": {
+    "count": 1536,
+    "cpu_us": 17119,
+    "cuda_us": 0
+  },
+  "stage:init_random_proj": {
+    "count": 3072,
+    "cpu_us": 1785051,
+    "cuda_us": 21598817
+  },
+  "stage:orth_a_q": {
+    "count": 12288,
+    "cpu_us": 60325132,
+    "cuda_us": 65547133
+  },
+  "stage:orth_at_q": {
+    "count": 12288,
+    "cpu_us": 74312164,
+    "cuda_us": 8297295
+  },
+  "stage:orth_init": {
+    "count": 3072,
+    "cpu_us": 2106597702,
+    "cuda_us": 16391459
+  },
+  "stage:power_a_q": {
+    "count": 12288,
+    "cpu_us": 361278,
+    "cuda_us": 104529003
+  },
+  "stage:power_at_q": {
+    "count": 12288,
+    "cpu_us": 471369,
+    "cuda_us": 92362917
+  },
+  "stage:power_iter_setup": {
+    "count": 1536,
+    "cpu_us": 40911,
+    "cuda_us": 0
+  },
+  "stage:projection": {
+    "count": 3072,
+    "cpu_us": 106515,
+    "cuda_us": 23014782
+  },
+  "stage:setup": {
+    "count": 3072,
+    "cpu_us": 148544,
+    "cuda_us": 13816
+  },
+  "stage:small_svd": {
+    "count": 3072,
+    "cpu_us": 38036980,
+    "cuda_us": 40206592
+  },
+  "svd_v6_fp32_chol/call": {
+    "count": 1536,
+    "cpu_us": 2282699050,
+    "cuda_us": 186266575
+  }
+}
