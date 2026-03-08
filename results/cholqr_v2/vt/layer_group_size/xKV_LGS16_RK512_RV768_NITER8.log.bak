@@ -10,12 +10,12 @@ Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1
 Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.75it/s]
 Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.48it/s]
 Enabled xKV: True
-2026-02-10 02:24:56.738 | INFO     | xKV.customized_cache.fake_layer_merge_dynamic_cache:enable:55 - SVD 性能记录已启用: 输出文件=experiments/logs/layer_group_size_test_cholqr/xKV_LGS16_RK512_RV768_NITER8_svd_benchmark.json, SVD方法=randomized
+2026-02-10 02:24:56.738 | INFO     | xKV.customized_cache.fake_layer_merge_dynamic_cache:enable:55 - SVD performance recording enabled: Output file=experiments/logs/layer_group_size_test_cholqr/xKV_LGS16_RK512_RV768_NITER8_svd_benchmark.json, SVD method=randomized
 
 ============================================================
-SVD 性能记录已启用
-  输出文件: experiments/logs/layer_group_size_test_cholqr/xKV_LGS16_RK512_RV768_NITER8_svd_benchmark.json
-  SVD方法: randomized
+SVD performance recording enabled
+  Output file: experiments/logs/layer_group_size_test_cholqr/xKV_LGS16_RK512_RV768_NITER8_svd_benchmark.json
+  SVD method: randomized
   n_iter: 8, oversample: 4
 ============================================================
 

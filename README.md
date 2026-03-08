@@ -1,108 +1,89 @@
-## kv-svd
+# kv-svd
 
-Fast randomized SVD kernels for LLM KV-cache compression and end‑to‑end benchmarking.
+Fast randomized SVD for LLM KV-cache compression, with end-to-end benchmarking and analysis.
 
----
-
-### What problem we’re solving
-
-When an LLM runs with a very long context, the **KV cache grows linearly with the number of tokens**.  
-At tens of thousands to hundreds of thousands of tokens, this makes **GPU memory and attention compute the main bottleneck**, especially during decoding.
-
-A standard idea is to approximate the KV cache using a **low-rank SVD**, so we keep most of the information but reduce the effective complexity.  
-However, **exact SVD (`torch.linalg.svd`) is far too slow and too memory‑heavy** to be practical for real‑time inference on long‑context workloads.
+**Code:** [github.com/bairixie/kv-svd](https://github.com/bairixie/kv-svd)  
+**Full write-up (method, experiments, figures):** [blog.md](blog.md)
 
 ---
 
-### What we built
+## What we're solving
 
-This repository implements and benchmarks a **GPU‑friendly randomized SVD pipeline** for KV‑cache compression:
+In long-context LLM inference, the **KV cache** grows linearly with sequence length and becomes a major **memory and compute bottleneck**. A standard approach is to approximate it with a **low-rank SVD**. Exact SVD (`torch.linalg.svd`) is too slow and memory-heavy for online use; even **randomized SVD** via `torch.svd_lowrank` leaves a lot of hardware efficiency on the table.
 
-- **Randomized SVD kernels (`cholqr_v1`–`cholqr_v4`)** tailored to the KV‑cache geometry.
-- Heavy linear‑algebra steps (projection / power iteration / GEMMs) run in **BF16 on NVIDIA Tensor Cores** for speed.
-- A **Cholesky‑based QR** for tall‑skinny orthogonalization (fast), with robust fallbacks and enhancements across `cholqr_v1`–`cholqr_v4`.
-- A small “core SVD” is kept in **FP32** for numerical stability.
-- End‑to‑end **latency + accuracy benchmarking** on a realistic long‑context task.
-
-All analysis code and figures are designed to be reproducible directly from this repository.
+This repo provides **faster, numerically robust randomized SVD kernels** designed for KV-cache shapes and integrates with the [xKV](https://github.com/abdelfattah-lab/xKV) codebase for end-to-end latency and accuracy evaluation.
 
 ---
 
-### Experimental setup (main comparison)
+## What we built
 
-- **Model**: `meta-llama/Meta-Llama-3.1-8B-Instruct`
-- **Task**: RULER Variable Tracking (`ruler/vt`), **65,536‑token context**
-- **KV tensor shape (example)**: `[1, 32, 65295, 128]` (batch=1, heads=32, seq_len≈65k, head_dim=128)
-- **Main config (example)**: `LGS = 4`, rank `K = 256`, value rank `V = 384`
-- **Precision**: KV tensors and GEMMs in BF16, small SVD and some reductions in FP32
+- **Randomized SVD implementations (`cholqr_v1`–`cholqr_v6`)** in `svd_methods/`:
+  - **BF16 power iteration** on Tensor Cores for speed.
+  - **Cholesky-based QR** for tall-skinny orthogonalization, with Gram symmetrization, adaptive regularization, SPD-repair fallback, and optional Householder QR.
+  - Small core SVD kept in **FP32** for stability.
+- **cholqr_v6** is the main kernel used in the reported experiments: **4.1× faster** than `torch.svd_lowrank` (392.0s → 95.7s SVD CUDA time), with SVD’s share of total profiling time dropping from 14.2% to 3.5%.
+- **Baselines**: full SVD and `torch.svd_lowrank` (see `svd_baselines.py`).
+- **Benchmark results** under `results/` (from xKV runs): logs and JSON for full_svd, lowrank_svd, and cholqr_v1–v6.
+- **Pre-generated figures** in `plot/` (including `plot/cholqr_v6/` for the main paper figures).
 
-On this setup we measure:
-
-- **SVD kernel latency** (average and breakdown by stage).
-- **Task accuracy** on `ruler/vt` under different compression settings.
-- The trade‑offs across **power iterations**, **rank**, and **layer group size (LGS)**.
-
----
-
-### Methods compared
-
-- **Full SVD** (`torch.linalg.svd`):
-  - Computes an exact low‑rank factorization on the reshaped KV tensor.
-  - Provides a **strong accuracy upper bound**, but is **the slowest and most memory‑intensive**.
-
-- **Low‑rank SVD (`torch.svd_lowrank`)**:
-  - Standard randomized SVD from PyTorch.
-  - Exposes rank and `niter` as knobs for a **generic speed/accuracy trade‑off**.
-
-- **Custom randomized SVD kernels (cholqr_v1–v4)**:
-  - Use **Cholesky‑based QR** and power iteration tailored to KV‑cache shapes.
-  - Run BMMs in **BF16**, with **FP32 normalization + small SVD**.
-  - Progressively improve **numerical stability, jittering strategies, and SPD fixes** (from v1 to v4).
-  - `cholqr_v4` is the **main production‑oriented kernel**, with detailed per‑stage breakdown and the best balance between speed and accuracy on long‑context RULER benchmarks.
-
-At a high level, **full SVD** is used as a reference, **`torch.svd_lowrank`** as a common baseline, and **cholqr_v1–v4** as increasingly refined KV‑aware randomized SVD kernels.
+All details (algorithm, setup, tables, and figure interpretations) are in **[blog.md](blog.md)**.
 
 ---
 
-This repo contains:
-- Custom randomized SVD implementations for KV-cache compression (cholqr_v1–v4).
-- Baseline SVD methods (full SVD, `torch.svd_lowrank`).
-- **Offline benchmark results** (JSON / log files) produced by the xKV codebase [abdelfattah-lab/xKV](https://github.com/abdelfattah-lab/xKV.git).
-- Plotting and post‑processing utilities to compare different SVD methods, power iterations, and layer group sizes.
+## Experimental setup (main comparison)
 
-All analysis code and figures in this repo operate **on top of the logs generated by xKV** and are designed to be reproducible once those logs are available locally.
+- **Model:** `meta-llama/Meta-Llama-3.1-8B-Instruct`
+- **Task:** RULER Variable Tracking (`ruler/vt`), **65,536-token context**
+- **Example KV shape:** `[1, 32, 65295, 128]` (batch=1, heads=32, seq_len≈65k, head_dim=128)
+- **Example config:** layer group size (LGS)=4, rank K=256, value rank V=384, n_iter=4
+- **Precision:** KV and large GEMMs in BF16; small SVD and critical steps in FP32
 
----
-
-## 1. Repository layout
-
-- `svd_methods/`
-  - `random_householdQR.py`: randomized SVD with Householder QR / `torch.linalg.qr`.
-  - `random_cholesky_v4.py`: latest cholqr_v4 randomized SVD kernel (Cholesky‑based QR + power iteration).
-- `results/`
-  - `full_svd/`: full SVD benchmarks and logs.
-  - `lowrank_svd/`: `torch.svd_lowrank` benchmarks and logs.
-  - `cholqr_v1/`, `cholqr_v2/`, `cholqr_v3/`, `cholqr_v4/`:
-    - `power_iterations/`: vary `n_iter` for fixed LGS / rank / RV.
-    - `layer_group_size/`: vary layer group size (LGS) for fixed `n_iter`.
-- `plot/`
-  - `fig_all_methods_comparison.py`: main script to compare **all SVD methods** (Full, Lowrank, cholqr_v1–v4).
-  - `fig_cholqr_v4_comparison.py`: detailed analysis for cholqr_v4 (power iteration & layer group size).
-  - `cholqr_v1/`, `cholqr_v2/`, `cholqr_v3/`, `cholqr_v4/`: saved figures for each randomized SVD variant.
+We measure SVD CUDA time (total and per-stage), task accuracy on `ruler/vt`, and trade-offs over power iterations, rank, and LGS.
 
 ---
 
-## 2. Data generation pipeline
+## Methods compared
 
-### 2.1 Run SVD benchmarks (in xKV)
+| Method | Description |
+|--------|-------------|
+| **Full SVD** | `torch.linalg.svd` — exact, slow, memory-heavy; accuracy upper bound. |
+| **Low-rank SVD** | `torch.svd_lowrank` — PyTorch randomized SVD; baseline for speed/accuracy. |
+| **cholqr_v1–v6** | Custom randomized SVD: Cholesky QR + BF16 power iteration; v6 is the main production kernel with orth choice (chol/house) and full per-stage breakdown. |
 
-All end‑to‑end KV‑cache benchmarks are run in the **xKV** repository [abdelfattah-lab/xKV](https://github.com/abdelfattah-lab/xKV.git), **not** in this repo.
+---
 
-In xKV, you can evaluate different KV‑cache compression methods (Single SVD, xKV, MiniCache, etc.) on RULER, e.g.:
+## Repository layout
+
+```
+kv-svd/
+├── blog.md                 # Full write-up: method, experiments, figures
+├── README.md               # This file
+├── svd_methods/             # SVD implementations
+│   ├── svd_baselines.py    # Full SVD & torch.svd_lowrank references
+│   ├── random_cholesky_v1.py … random_cholesky_v6.py   # cholqr kernels
+├── results/                # Benchmark outputs (from xKV)
+│   ├── full_svd/           # Full SVD runs
+│   ├── lowrank_svd/        # torch.svd_lowrank runs
+│   ├── cholqr_v1/ … cholqr_v6/   # Custom kernel runs (vt, fwe, niah_*, etc.)
+├── plot/                   # Figures and plot outputs
+│   ├── cholqr_v6/          # Main figures (SVD time proportion, stage breakdown, accuracy)
+│   ├── cholqr_v1/ … cholqr_v4/   # Legacy comparison figures
+│   └── fig_*.png            # All-methods comparison figures
+```
+
+- **SVD code:** Used by xKV via plug-in; not run standalone in this repo.
+- **Results:** Produced by [xKV](https://github.com/abdelfattah-lab/xKV). Copy or symlink xKV logs/JSON into `results/*` as needed.
+- **Plots:** Figures in `plot/` are generated from those results (plotting scripts may live in a separate workflow or script set). Key figures for the blog are in `plot/cholqr_v6/`.
+
+---
+
+## Running benchmarks (in xKV)
+
+End-to-end KV-cache benchmarks are run inside the **xKV** repo, not here. Example (RULER VT, 65k context, xKV-4):
 
 ```bash
-# xKV-4 on RULER / vt (LGS=4, rank_k=256, rank_v=384, 65,536-token context)
-CUDA_VISIBLE_DEVICES=4,5,6,7 OMP_NUM_THREADS=48 torchrun --standalone --nnodes=1 --nproc_per_node 4 \
+# In the xKV repo
+CUDA_VISIBLE_DEVICES=... OMP_NUM_THREADS=... torchrun --standalone --nnodes=1 --nproc_per_node 4 \
   evaluate/eval_acc.py \
   --datalen 65536 \
   --batch_size 1 \
@@ -114,199 +95,39 @@ CUDA_VISIBLE_DEVICES=4,5,6,7 OMP_NUM_THREADS=48 torchrun --standalone --nnodes=1
   --start_layer_idx 0 --end_layer_idx -1
 ```
 
-The logs / JSON files produced by xKV are then **copied or symlinked** into this repo’s `results/*` directories for further aggregation and plotting.
+Logs and JSON produced by xKV can be copied into this repo’s `results/*` for local analysis and plotting.
 
-Each experiment in the logs is parameterized by:
+**Naming convention (typical):**
 
-- **Layer Group Size (LGS)**: how many transformer layers are merged into one KV block (e.g. 2, 4, 8, 16).
-- **Rank (RK)** and **Rank‑Value (RV)**: low‑rank dimension for K/V (e.g. RK=256, RV=384; RK=512, RV=768).
-- **Power iteration `n_iter`**: number of power iterations used in the randomized SVD.
-
-File names follow the pattern:
-
-```text
-xKV_LGS{LGS}_RK{RK}_RV{RV}_NITER{N}_svd_benchmark.json   # latency records
-xKV_LGS{LGS}_RK{RK}_RV{RV}_NITER{N}.log                  # accuracy + high‑level stats
-```
-
-For cholqr_v2/cholqr_v3 (with detailed breakdown logs) the pattern is:
-
-```text
-..._NITER{N}_svd_benchmark_breakdown.log
-```
-
-### 2.2 Aggregate / rewrite summaries by rank
-
-Some original JSON files store only per‑call `records` without pre‑computed averages per rank.  
-To create rank‑wise summaries (and per‑stage breakdowns for cholqr_v4), this repo provides helper scripts under `results/` such as:
-
-- `rewrite_svd_summaries_by_rank.py`: regroup summaries by `rank` and rewrite the `summary` field in place.
-- Other small utilities (if present) to massage the xKV outputs into a uniform format expected by the plotting code.
-
-After running these utilities, each `*_svd_benchmark.json` will contain a `summary` dict with keys of the form:
-
-- `"randomized (Rank 256) (rank=256)"`, `"FULL_SVD (rank=512)"`, etc.
-
-and values like:
-
-- `count`, `total_time_ms`, `avg_time_ms`, `min_time_ms`, `max_time_ms`
-- (for cholqr_v4) `avg_breakdown_ms` for stages such as `preparation_ms`, `projection_ms`, `power_iteration_ms`, `final_qr_ms`, `small_svd_fp32_ms`, `reconstruction_ms`, `project_to_lowrank_ms`.
-
-
-## 3. Plotting and analysis
-
-### 3.1 All‑methods comparison (Full vs Lowrank vs cholqr_v1–v4)
-
-Use `plot/fig_all_methods_comparison.py` to compare **all SVD implementations** under a specific configuration:
-
-```bash
-python -m plot.fig_all_methods_comparison --lgs 4 --rank 256 --rv 384 --n_iter 8
-python -m plot.fig_all_methods_comparison --lgs 8 --rank 512 --rv 768 --n_iter 8
-```
-
-Arguments:
-- `--lgs`: layer group size.
-- `--rank`: SVD rank (RK).
-- `--rv`: value rank (RV), usually `rank * 1.5` (e.g., 256 → 384, 512 → 768).
-- `--n_iter`: power iteration count used for the randomized methods.
-
-The script:
-- Automatically locates the appropriate JSON / log files for:
-  - `results/full_svd`
-  - `results/lowrank_svd`
-  - `results/cholqr_v1`, `cholqr_v2`, `cholqr_v3`, `cholqr_v4`
-  - Falls back between `power_iterations` and `layer_group_size` directories when needed.
-- Builds a figure with two subplots:
-  1. **Latency Comparison** (average latency in ms).
-  2. **Accuracy Comparison** (baseline score on `ruler/vt`).
-- Saves to:
-
-```text
-plot/fig_all_methods_comparison_LGS{LGS}_RK{RK}_RV{RV}_NITER{N}.png
-```
-
-Cholqr_v4 is treated as an additional randomized SVD method and appears alongside cholqr_v1/v2/v3.
-
-There is also a helper mode to list all available configurations detected in `results/*`:
-
-```bash
-python -m plot.fig_all_methods_comparison list
-```
-
-This prints all `(LGS, Rank, RV, n_iter)` combinations inferred from filenames.
-
-### 3.2 Power iteration and layer‑group analysis for cholqr_v4
-
-`plot/fig_cholqr_v4_comparison.py` provides detailed analysis for cholqr_v4 only.
-
-**Power iteration comparison (fixed LGS, rank, RV):**
-
-```bash
-python -m plot.fig_cholqr_v4_comparison power_iter --lgs 4 --rank 256 --rv 384
-python -m plot.fig_cholqr_v4_comparison power_iter --lgs 8 --rank 512 --rv 768
-```
-
-Each figure contains three panels:
-- Latency vs `n_iter` (2, 4, 8, 16 – pulled from `power_iterations` and, when needed, `layer_group_size`).
-- Accuracy vs `n_iter`.
-- Latency breakdown vs `n_iter` (stacked by stage).
-
-The resulting files are saved under:
-
-```text
-plot/cholqr_v4/fig_cholqr_v4_power_iteration_LGS{LGS}_RK{RK}_RV{RV}.png
-```
-
-**Layer group size comparison (fixed rank, RV, `n_iter`):**
-
-```bash
-python -m plot.fig_cholqr_v4_comparison layer_group --rank 512 --rv 768 --n_iter 8
-```
-
-Each figure contains:
-- Latency vs LGS (2, 4, 8, 16).
-- Accuracy vs LGS.
-- Latency breakdown vs LGS.
-
-Outputs:
-
-```text
-plot/cholqr_v4/fig_cholqr_v4_layer_groups_RK{RK}_RV{RV}_NITER{N}.png
-```
-
-### 3.3 Per‑algorithm power‑iteration plots for cholqr_v1–v3
-
-For legacy comparison with cholqr_v1–v3, use modes inside `fig_all_methods_comparison.py`:
-
-```bash
-# Single algorithm, power iteration sweep
-python -m plot.fig_all_methods_comparison power_iter --algorithm cholqr_v2 --rank 256 --lgs 4 --rv 384
-
-# All three algorithms at once (same rank / LGS / RV)
-python -m plot.fig_all_methods_comparison all_power_iter --rank 256 --lgs 4 --rv 384
-```
-
-These produce figures like:
-- `plot/fig_power_iteration_comparison_cholqr_v2_LGS4_RK256_RV384.png`
-
-Design is analogous to the cholqr_v4 plots (latency, accuracy, breakdown).
+- `xKV_LGS{LGS}_RK{RK}_RV{RV}_NITER{N}_svd_benchmark.json` — latency records  
+- `xKV_LGS{LGS}_RK{RK}_RV{RV}_NITER{N}.log` — accuracy and high-level stats  
 
 ---
 
-## 4. Interpretation notes
+## Randomized SVD variants (cholqr_v1–v6)
 
-- **Full SVD** is the slowest but provides a strong accuracy baseline.
-- **Lowrank SVD (`torch.svd_lowrank`)** offers a speed/accuracy trade‑off controlled by `niter` and rank.
-- **cholqr_v1–v3** progressively optimize:
-  - numerical stability (Householder vs Cholesky QR),
-  - precision (BF16 compute with FP32 QR/SVD),
-  - and breakdown logging.
-- **cholqr_v4** further improves the kernel:
-  - Provides detailed per‑stage breakdown via aggregated JSON summaries.
-  - Achieves significantly lower latency than full SVD while keeping accuracy competitive, especially around moderate `n_iter` (e.g., 8).
-  - Exhibits clear trade‑offs between LGS (coarser grouping improves compression but may reduce accuracy) and `n_iter` (more iterations improve accuracy but increase latency).
-
-When analyzing new experiments, the typical workflow is:
-1. Run benchmarks to fill `results/*`.
-2. Aggregate summaries via the `aggregate_*.py` scripts.
-3. Regenerate plots using the `plot/*.py` utilities.
-4. Inspect both the overall comparison figures and the per‑algorithm power‑iteration / LGS‑sweep plots.
+| Version | Notes |
+|--------|--------|
+| **v1** | Cholesky QR + fixed jitter; fast but numerically sensitive. |
+| **v2** | Dynamic jitter, full `eigh`-based SPD correction, explicit normalization. |
+| **v3** | Same stability as v2; cheaper `eigvalsh`-based shifts. |
+| **v4** | BF16-oriented, trace-scaled jitter, optional eigen-clamping, mixed-precision normalization. |
+| **v5** | Further tuning and options for KV-cache workloads. |
+| **v6** | Main kernel: `randomized_svd_bf16()` with `orth` (chol / house), `power_dtype`, transpose handling, and aggressive memory release; used for reported 4.1× speedup and figures in [blog.md](blog.md). |
 
 ---
 
-## 5. Environment notes
+## Environment
 
-- The plotting scripts rely on:
-  - `matplotlib`
-  - `numpy`
-  - `torch` (only for reference in some methods)
-- If `~/.matplotlib` is not writable on your system, you can set:
+- **For xKV:** Follow xKV’s requirements (PyTorch, CUDA, etc.).
+- **For local plotting/analysis:** `matplotlib`, `numpy`, and optionally `torch`. If `~/.matplotlib` is not writable, set `MPLCONFIGDIR` (e.g. `export MPLCONFIGDIR=/tmp/matplotlib-cache`).
 
-```bash
-export MPLCONFIGDIR=/tmp/matplotlib-cache
-```
-
-to avoid warnings and speed up Matplotlib imports.
-
-All paths in this README assume the project root is:
-
-```text
-/Users/mozhihao/Desktop/svd research/kv-svd
-```
-
-If you clone the repo elsewhere, simply `cd` into the new root before running the commands above.
+Commands in this README assume the project root is the repo root (where `blog.md` and `svd_methods/` live).
 
 ---
 
-## 6. Randomized SVD variants (cholqr_v1–v4)
+## Citation and links
 
-For a more algorithmic comparison of the four custom randomized SVD kernels used in our experiments, see:
-
-- `svd_methods/summary.log`
-
-In short:
-
-- **cholqr_v1**: baseline Cholesky‑QR with fixed jitter and QR fallback – fastest but numerically sensitive.
-- **cholqr_v2**: adds dynamic jitter, full `eigh`‑based SPD correction, and explicit normalization – very stable.
-- **cholqr_v3**: keeps v2’s stability while replacing full `eigh` with cheaper `eigvalsh`‑based shifts.
-- **cholqr_v4**: BF16‑oriented, trace‑scaled jitter, optional eigen‑clamping, and mixed‑precision normalization – used as the main kernel in our KV‑cache benchmarks.
+- **xKV (KV-cache compression):** [abdelfattah-lab/xKV](https://github.com/abdelfattah-lab/xKV)
+- **This implementation:** [bairixie/kv-svd](https://github.com/bairixie/kv-svd)
+- **Full method and experiments:** [blog.md](blog.md)
