@@ -37,11 +37,11 @@ Unlike weight-compression methods that amortize a one-time offline SVD, xKV must
 
 We present a faster, numerically robust randomized SVD for online KV-Cache compression, available at [github.com/bairixie/kv-svd](https://github.com/bairixie/kv-svd). Our method follows the same four-stage structure as `torch.svd_lowrank` with two targeted changes:
 
-- <span style="color:#4e79a7">**16-bit power iteration.**</span> Casting the KV-Cache to 16-bit for all matrix multiplications in Stages 1–3 halves memory bandwidth and enables full Tensor Core utilization. The matrix-multiply sub-cost in the power iteration drops from <span style="color:#c0373a">**91.5 s → 22.5 s (4.1×)**</span> [Section 6.3](#63-stage-level-breakdown).
+- <span style="color:#4e79a7">**16-bit power iteration.**</span> Casting the KV-Cache to 16-bit for all matrix multiplications in Stages 1–3 halves memory bandwidth and enables full Tensor Core utilization. The matrix-multiply sub-cost in the power iteration drops from <span style="color:#c0373a">**91.5 s → 22.5 s (4.1×)**</span>.
 
 - <span style="color:#c0373a">**Cholesky QR orthogonalization.**</span> Replacing Householder QR with a numerically robust Cholesky QR — incorporating Gram matrix symmetrization, adaptive shift regularization [Fukaya et al., 2020], an eigh-based SPD-repair fallback [Yamazaki et al., 2015], and a Householder safety net — reduces orthogonalization time from <span style="color:#c0373a">**222.6 s → 37.8 s (5.9×)**</span>.
 
-> **Combined:** total SVD CUDA time <span style="color:#c0373a">**392.0 s → 96.7 s (4.1× overall speedup)**</span>; SVD's share of per-sample profiling time drops from **13.0% →** <span style="color:#1a6a5a">**3.6%**</span>. On a 4-task RULER average, accuracy (<span style="color:#1a6a5a">**67.36%**</span>) matches the baseline (67.24%) within 0.12 percentage points [Section 6.4](#64-average-accuracy-comparison).
+> **Combined:** total SVD CUDA time <span style="color:#c0373a">**392.0 s → 96.7 s (4.1× overall speedup)**</span>; SVD's share of per-sample profiling time drops from **13.0% →** <span style="color:#1a6a5a">**3.6%**</span>. On a 4-task RULER average, accuracy (<span style="color:#1a6a5a">**67.36%**</span>) matches the baseline (67.24%) within 0.12 percentage points.
 
 ---
 
@@ -59,7 +59,7 @@ where $U \in \mathbb{R}^{m \times m}$ and $V \in \mathbb{R}^{n \times n}$ are or
 
 Truncating to the top-$k$ components gives the **rank-$k$ approximation** $A_k = U_k \Sigma_k V_k^\top$. The **Eckart-Young theorem** guarantees:
 
-$$\|A - A_k\|_F = \min_{\operatorname{rank}(B) \leq k} \|A - B\|_F = \sqrt{\sigma_{k+1}^2 + \sigma_{k+2}^2 + \cdots}$$
+$$\|A - A_k\|_F = \min_{\text{rank}(B) \leq k} \|A - B\|_F = \sqrt{\sigma_{k+1}^2 + \sigma_{k+2}^2 + \cdots}$$
 
 No other rank-$k$ matrix achieves a smaller error — this is the theoretical foundation for SVD-based compression.
 
@@ -123,7 +123,7 @@ for _ in range(n_iter):
     Q ← orthonormalize( (A−M)  @ Q )
 ```
 
-Each iteration amplifies eigenvalue ratios by $(\sigma_i/\sigma_j)^{2n_\text{iter}}$. With $n_\text{iter} = 4$, this stage accounts for <span style="color:#c0373a">**62–80%**</span> of total SVD time depending on implementation [Section 6.3](#63-stage-level-breakdown).
+Each iteration amplifies eigenvalue ratios by $(\sigma_i/\sigma_j)^{2n_\text{iter}}$. With $n_\text{iter} = 4$, this stage accounts for <span style="color:#c0373a">**62–80%**</span> of total SVD time depending on implementation.
 
 <span style="color:#1b2a4a">**Stage 4 — Project and Recover.**</span>
 
@@ -156,7 +156,7 @@ Our method is structurally identical to `torch.svd_lowrank`, with two modificati
 | 2. Random Projection | $Y = AR$, orthogonalize | FP32 · Householder QR | **16-bit matmul · Cholesky QR** |
 | 3. Power Iteration | $A^\mathsf{H}Q$, $AQ$, orth. | FP32 · Householder QR | **16-bit matmuls · Cholesky QR** |
 | 4a. Projection | $B = Q^\mathsf{H}(A{-}M)$ | FP32 | **16-bit** |
-| **4b. Small SVD** | $\operatorname{svd}(B)$ | FP32 | **FP32** (PyTorch constraint) |
+| **4b. Small SVD** | $\text{svd}(B)$ | FP32 | **FP32** (PyTorch constraint) |
 | 4c. Lift & truncate | $U = Q\hat{U}$ | FP32 | **16-bit** |
 
 `chol_qr` is *16-bit-in / 16-bit-out* with an internal FP32 upgrade: it upcasts to FP32 for Gram matrix computation and Cholesky factorization, then returns $Q$ in 16-bit. Stage 4b must be FP32 because `torch.linalg.svd` raises a runtime error on 16-bit input — a hard PyTorch constraint, not an accuracy choice. Fortunately $B$ has shape $(k+p) \times n$ (e.g., $4 \times 512$), making this cost negligible.
@@ -165,7 +165,7 @@ Our method is structurally identical to `torch.svd_lowrank`, with two modificati
 
 The power iteration consists of repeated large matrix multiplications:
 
-$$Q \;\leftarrow\; \operatorname{orth}(A^\mathsf{H} Q), \qquad Q \;\leftarrow\; \operatorname{orth}(A Q)$$
+$$Q \;\leftarrow\; \text{orth}(A^\mathsf{H} Q), \qquad Q \;\leftarrow\; \text{orth}(A Q)$$
 
 where $A \in \mathbb{R}^{L \times (Gd)}$ is the grouped, concatenated KV-Cache. Three properties make this ideal for precision reduction:
 
@@ -205,7 +205,7 @@ Floating-point rounding in $Y^\top Y$ accumulates small off-diagonal asymmetries
 
 Following Fukaya et al. [2020], we add a scale-invariant diagonal shift:
 
-$$G_\text{shifted} = G + \varepsilon \cdot \mathrm{scale} \cdot I, \quad \mathrm{scale} = \operatorname{mean}(\operatorname{diag}(G)).\!\operatorname{clamp}(\min=10^{-12})$$
+$$G_\text{shifted} = G + \varepsilon \cdot \mathrm{scale} \cdot I, \quad \mathrm{scale} = \text{mean}(\text{diag}(G)).\!\text{clamp}(\min=10^{-12})$$
 
 We use `torch.linalg.cholesky_ex` with exponential backoff for batch-aware failure detection:
 
@@ -336,7 +336,7 @@ Three observations follow. First, full SVD is not viable at this scale: it consu
 
 <span style="color:#1b2a4a">**Stage 4 (Project & Recover) shows a modest 1.8× gain**</span>, driven by the 16-bit projection $B = Q^\mathsf{H}(A-M)$. The small SVD of $B$ (shape $(k+p) \times n$) runs in FP32 and remains negligible. Stage 4's share of total time grows from 9.9% to 22.7% — not because it became slower in absolute terms, but because Stage 3 shrank so dramatically.
 
-### 6.4 Average Accuracy Comparison
+### 6.4 Accuracy vs. Speed Trade-off
 
 ![Figure 3: Accuracy Comparison — Average over RULER Subtasks](plot/cholqr_v6/Figure_2_SVD_Accuracy_Comparison_VT.png)
 
