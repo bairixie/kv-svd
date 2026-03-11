@@ -18,7 +18,7 @@ This repo provides **faster, numerically robust randomized SVD kernels** designe
 ## What we built
 
 - **Randomized SVD implementations (`cholqr_v1`–`cholqr_v6`)** in `svd_methods/`:
-  - **BF16 power iteration** on Tensor Cores for speed.
+  - **16-bit power iteration** (FP16/BF16) on Tensor Cores for speed.
   - **Cholesky-based QR** for tall-skinny orthogonalization, with Gram symmetrization, adaptive regularization, SPD-repair fallback, and optional Householder QR.
   - Small core SVD kept in **FP32** for stability.
 - **cholqr_v6** is the main kernel used in the reported experiments: **4.1× faster** than `torch.svd_lowrank` (392.0s → 95.7s SVD CUDA time), with SVD’s share of total profiling time dropping from 14.2% to 3.5%.
@@ -36,7 +36,7 @@ All details (algorithm, setup, tables, and figure interpretations) are in **[blo
 - **Task:** RULER Variable Tracking (`ruler/vt`), **65,536-token context**
 - **Example KV shape:** `[1, 32, 65295, 128]` (batch=1, heads=32, seq_len≈65k, head_dim=128)
 - **Example config:** layer group size (LGS)=4, rank K=256, value rank V=384, n_iter=4
-- **Precision:** KV and large GEMMs in BF16; small SVD and critical steps in FP32
+- **Precision:** KV and large GEMMs in FP16; small SVD and critical steps in FP32
 
 We measure SVD CUDA time (total and per-stage), task accuracy on `ruler/vt`, and trade-offs over power iterations, rank, and LGS.
 
@@ -48,7 +48,7 @@ We measure SVD CUDA time (total and per-stage), task accuracy on `ruler/vt`, and
 |--------|-------------|
 | **Full SVD** | `torch.linalg.svd` — exact, slow, memory-heavy; accuracy upper bound. |
 | **Low-rank SVD** | `torch.svd_lowrank` — PyTorch randomized SVD; baseline for speed/accuracy. |
-| **cholqr_v1–v6** | Custom randomized SVD: Cholesky QR + BF16 power iteration; v6 is the main production kernel with orth choice (chol/house) and full per-stage breakdown. |
+| **cholqr_v1–v6** | Custom randomized SVD: Cholesky QR + 16-bit power iteration; v6 is the main production kernel with orth choice (chol/house) and full per-stage breakdown. |
 
 ---
 
@@ -58,8 +58,9 @@ We measure SVD CUDA time (total and per-stage), task accuracy on `ruler/vt`, and
 kv-svd/
 ├── blog.md                 # Full write-up: method, experiments, figures
 ├── README.md               # This file
-├── svd_methods/             # SVD implementations
-│   ├── svd_baselines.py    # Full SVD & torch.svd_lowrank references
+├── svd_methods/            # SVD implementations and high-level API
+│   ├── svd_baselines.py   # Full SVD & torch.svd_lowrank baselines
+│   ├── svd_api.py         # Unified wrapper: 'full' / 'lowrank' / 'cholqr'
 │   ├── random_cholesky_v1.py … random_cholesky_v6.py   # cholqr kernels
 ├── results/                # Benchmark outputs (from xKV)
 │   ├── full_svd/           # Full SVD runs
@@ -67,8 +68,8 @@ kv-svd/
 │   ├── cholqr_v1/ … cholqr_v6/   # Custom kernel runs (vt, fwe, niah_*, etc.)
 ├── plot/                   # Figures and plot outputs
 │   ├── cholqr_v6/          # Main figures (SVD time proportion, stage breakdown, accuracy)
-│   ├── cholqr_v1/ … cholqr_v4/   # Legacy comparison figures
-│   └── fig_*.png            # All-methods comparison figures
+│   ├── cholqr_v3/          # Legacy comparison figures for cholqr_v3
+│   └── fig_*.png           # All-methods comparison figures
 ```
 
 - **SVD code:** Used by xKV via plug-in; not run standalone in this repo.
@@ -111,9 +112,9 @@ Logs and JSON produced by xKV can be copied into this repo’s `results/*` for l
 | **v1** | Cholesky QR + fixed jitter; fast but numerically sensitive. |
 | **v2** | Dynamic jitter, full `eigh`-based SPD correction, explicit normalization. |
 | **v3** | Same stability as v2; cheaper `eigvalsh`-based shifts. |
-| **v4** | BF16-oriented, trace-scaled jitter, optional eigen-clamping, mixed-precision normalization. |
+| **v4** | 16-bit-oriented, trace-scaled jitter, optional eigen-clamping, mixed-precision normalization. |
 | **v5** | Further tuning and options for KV-cache workloads. |
-| **v6** | Main kernel: `randomized_svd_bf16()` with `orth` (chol / house), `power_dtype`, transpose handling, and aggressive memory release; used for reported 4.1× speedup and figures in [blog.md](blog.md). |
+| **v6** | Main kernel: `randomized_svd_fp16()` with `orth` (chol / house), `power_dtype`, transpose handling, and aggressive memory release; exposed via the `'cholqr'` option in `svd_methods/svd_api.py`, and used for the reported 4.1× speedup and figures in [blog.md](blog.md). |
 
 ---
 

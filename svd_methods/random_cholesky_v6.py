@@ -4,7 +4,7 @@ from torch import Tensor
 
 @torch.no_grad()
 def chol_qr(
-    Y_bf16: Tensor,
+    Y_fp16: Tensor,
     eye: Tensor,
     base_eps: float = 1e-5,
     max_eps: float = 10.0,
@@ -24,11 +24,11 @@ def chol_qr(
        Cholesky keeps failing (controlled by `use_eigh_last`).
     5. Finally falls back to a standard QR on Y as a last resort.
 
-    The output Q has the same dtype as the original Y_bf16, but all internal
+    The output Q has the same dtype as the original Y_fp16, but all internal
     computations are done in float32 for stability.
     """
     # Work in float32 for numerical stability.
-    Y = Y_bf16.float()
+    Y = Y_fp16.float()
 
     # Gram matrix of Y: G = Y^H * Y. We symmetrize to avoid small Hermitian drift
     # introduced by finite precision arithmetic.
@@ -55,7 +55,7 @@ def chol_qr(
             # equivalent to Y * (R^{-1})^H and yields an orthonormal basis.
             Q = torch.linalg.solve_triangular(R, Y, upper=True, left=False)
             del R, info, d, scale, G, Y
-            return Q.to(Y_bf16.dtype)
+            return Q.to(Y_fp16.dtype)
 
         # If Cholesky failed for some batches, increase eps and try again.
         del R, info
@@ -73,7 +73,7 @@ def chol_qr(
             R = torch.linalg.cholesky(G_spd, upper=True)
             Q = torch.linalg.solve_triangular(R, Y, upper=True, left=False)
             del L, V, G_spd, R, d, scale, G, Y
-            return Q.to(Y_bf16.dtype)
+            return Q.to(Y_fp16.dtype)
         except Exception:
             # If anything goes wrong in the SPD repair path, silently fall back
             # to a standard QR factorization below.
@@ -83,11 +83,11 @@ def chol_qr(
     # expensive but very robust.
     Q, _ = torch.linalg.qr(Y, mode="reduced")
     del d, scale, G, Y
-    return Q.to(Y_bf16.dtype)
+    return Q.to(Y_fp16.dtype)
 
 
 @torch.no_grad()
-def householder_qr(Y_bf16: Tensor) -> Tensor:
+def householder_qr(Y_fp16: Tensor) -> Tensor:
     """
     Standard QR-based orthonormalization using Householder reflections.
 
@@ -95,15 +95,15 @@ def householder_qr(Y_bf16: Tensor) -> Tensor:
     `chol_qr`. It directly applies QR to Y in float32 and converts the result
     back to bfloat16.
     """
-    Y = Y_bf16.float()
+    Y = Y_fp16.float()
     Q, _ = torch.linalg.qr(Y, mode="reduced")
     del Y
-    return Q.to(Y_bf16.dtype)
+    return Q.to(Y_fp16.dtype)
 
 
 @torch.no_grad()
 def orthonormalize(
-    Y_bf16: Tensor,
+    Y_fp16: Tensor,
     eye_q: Tensor,
     orth: str = "chol",
     base_eps: float = 1e-6,
@@ -112,7 +112,7 @@ def orthonormalize(
     use_eigh_last: bool = True,
 ) -> Tensor:
     """
-    Dispatch helper to orthonormalize the columns of Y_bf16.
+    Dispatch helper to orthonormalize the columns of Y_fp16.
 
     Parameters
     ----------
@@ -123,21 +123,21 @@ def orthonormalize(
           more stable but somewhat heavier.
     """
     if orth == "chol":
-        return chol_qr(Y_bf16, eye_q, base_eps, max_eps, max_tries, use_eigh_last)
-    return householder_qr(Y_bf16)
+        return chol_qr(Y_fp16, eye_q, base_eps, max_eps, max_tries, use_eigh_last)
+    return householder_qr(Y_fp16)
 
 @torch.no_grad()
-def randomized_svd_bf16(
+def randomized_svd_fp16(
     tensor_reshaped: Tensor,
     rank: int,
     n_iter: int = 4,
-    oversample: int = 0,
+    oversample: int = 4,
     M: Tensor | None = None,
     base_eps: float = 1e-5,
     max_eps: float = 10.0,
     max_tries: int = 6,
     use_eigh_last: bool = True,
-    power_dtype: str = "bf16",
+    power_dtype: str = "fp16",
     orth: str = "chol",
 ) -> tuple[Tensor, Tensor, Tensor]:
     """
@@ -148,7 +148,7 @@ def randomized_svd_bf16(
     1. Optionally transpose wide matrices so that the working operator has
        more rows than columns (m >= n), which improves numerical behavior.
     2. Choose a working precision for the power iteration / projection
-       (fp32, bf16, fp16, or fp8 variants).
+       (fp32, fp16, fp16, or fp8 variants).
     3. Build a low‑dimensional random subspace that approximates the range of A.
     4. Apply subspace (power) iteration to sharpen separation between singular
        values and improve approximation quality.
@@ -181,7 +181,7 @@ def randomized_svd_bf16(
     #   - significantly reduces memory footprint and bandwidth
     if power_dtype == "fp32":
         low_dtype = None
-    elif power_dtype == "bf16":
+    elif power_dtype == "fp16":
         low_dtype = torch.bfloat16
     elif power_dtype == "fp16":
         low_dtype = torch.float16
@@ -200,7 +200,7 @@ def randomized_svd_bf16(
                 "power_dtype='fp8_e5m2' requested, but torch.float8_e5m2 is not available in this PyTorch version."
             )
     else:
-        raise ValueError(f"Unsupported power_dtype '{power_dtype}'. Use 'fp32', 'bf16', 'fp16', or 'fp8'.")
+        raise ValueError(f"Unsupported power_dtype '{power_dtype}'. Use 'fp32', 'fp16', 'fp16', or 'fp8'.")
 
     # ------------------------------------------------------------------
     # 3) Choose working representation X_pow (and optionally X_low)
@@ -249,7 +249,7 @@ def randomized_svd_bf16(
     # so for fp8 we first sample in at least float16 and then cast.
     rand_dtype = (
         torch.float16
-        if power_dtype not in ("fp32", "bf16", "fp16")
+        if power_dtype not in ("fp32", "fp16", "fp16")
         else X_pow.dtype
     )
     R_rand = torch.randn(
