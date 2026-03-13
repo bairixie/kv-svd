@@ -25,7 +25,7 @@ Large Language Models (LLMs) have rapidly extended their effective context windo
 
 ### 1.2 KV-Cache Compression via SVD
 
-Among approaches to reduce KV-Cache memory — quantization, token eviction, and low-rank decomposition — **SVD-based compression** stands out for its theoretical grounding. KV-Cache matrices empirically exhibit rapid singular value decay, concentrating most information in a small number of dominant directions. Truncating to the top-$k$ singular components yields the *best possible* rank-$k$ approximation by the Eckart-Young theorem.
+Among approaches to reduce KV-Cache memory — quantization, token eviction, and low-rank decomposition — **SVD-based compression** stands out for its theoretical grounding. KV-Cache matrices empirically exhibit rapid singular value decay, concentrating most information in a small number of dominant directions. Truncating to the top-k singular components yields the *best possible* rank-k approximation by the Eckart-Young theorem.
 
 **xKV** [Chang et al., 2025] takes this further by observing that dominant singular vectors are well-aligned *across* adjacent layers. Concatenating the KV-Caches of $G$ adjacent layers and applying a single shared SVD extracts a common low-rank subspace for all layers jointly, achieving up to <span style="color:#1a6a5a">**6.8× higher compression**</span> than prior inter-layer methods at improved accuracy.
 
