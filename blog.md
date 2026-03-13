@@ -57,11 +57,11 @@ where $U \in \mathbb{R}^{m \times m}$ and $V \in \mathbb{R}^{n \times n}$ are or
 
 ### 2.2 Low-Rank Approximation and the Eckart-Young Theorem
 
-Truncating to the top-$k$ components gives the **rank-$k$ approximation** $A_k = U_k \Sigma_k V_k^\top$. The **Eckart-Young theorem** guarantees:
+Truncating to the top-k components gives the **rank-k approximation** $A_k = U_k \Sigma_k V_k^\top$. The **Eckart-Young theorem** guarantees:
 
 $$\|A - A_k\|_F = \min_{\text{rank}(B) \leq k} \|A - B\|_F = \sqrt{\sigma_{k+1}^2 + \sigma_{k+2}^2 + \cdots}$$
 
-No other rank-$k$ matrix achieves a smaller error — this is the theoretical foundation for SVD-based compression.
+No other rank-k matrix achieves a smaller error — this is the theoretical foundation for SVD-based compression.
 
 ### 2.3 Spectral Decay and Compressibility
 
