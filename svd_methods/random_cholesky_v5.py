@@ -1,4 +1,12 @@
+"""
+Archival research iteration for Cholesky-QR randomized SVD.
+
+This file is kept to document the development path toward `random_cholesky_v6`.
+Use `random_cholesky_v6.py` through `svd_api.py` for the final method.
+"""
+
 import torch
+
 
 @torch.no_grad()
 def chol_qr(Y_bf16, eye_fp32, base_eps=1e-6, max_eps=10.0, max_tries=6, use_eigh_last=True):
@@ -23,7 +31,7 @@ def chol_qr(Y_bf16, eye_fp32, base_eps=1e-6, max_eps=10.0, max_tries=6, use_eigh
         R, info = torch.linalg.cholesky_ex(G + (eps * scale) * eye_fp32, upper=True)
         if (info == 0).all():
             Q = torch.linalg.solve_triangular(R, Y, upper=True, left=False)
-            del R, G, Y # Immediate memory release
+            del R, G, Y
             return Q.to(Y_bf16.dtype)
         eps = min(eps * 10.0, max_eps)
     

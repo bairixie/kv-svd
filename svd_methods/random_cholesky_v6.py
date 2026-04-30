@@ -2,9 +2,13 @@ import torch
 from torch import Tensor
 
 
+PowerDType = str
+OrthogonalizationMethod = str
+
+
 @torch.no_grad()
 def chol_qr(
-    Y_fp16: Tensor,
+    Y_low_precision: Tensor,
     eye: Tensor,
     base_eps: float = 1e-5,
     max_eps: float = 10.0,
@@ -12,9 +16,9 @@ def chol_qr(
     use_eigh_last: bool = True,
 ) -> Tensor:
     """
-    Numerically robust Cholesky–QR orthonormalization on a batch of bfloat16 matrices.
+    Numerically robust Cholesky-QR for a batch of low-precision matrices.
 
-    Given an input matrix (or batch of matrices) Y in bfloat16, this routine:
+    Given an input matrix (or batch of matrices) Y, this routine:
     1. Forms the Gram matrix G = Y^H Y in float32 and explicitly symmetrizes it.
     2. Adds an adaptive diagonal regularization eps * scale * I to improve
        positive-definiteness, where `scale` is derived from the mean diagonal of G.
@@ -24,11 +28,11 @@ def chol_qr(
        Cholesky keeps failing (controlled by `use_eigh_last`).
     5. Finally falls back to a standard QR on Y as a last resort.
 
-    The output Q has the same dtype as the original Y_fp16, but all internal
+    The output Q has the same dtype as the original input, but all internal
     computations are done in float32 for stability.
     """
     # Work in float32 for numerical stability.
-    Y = Y_fp16.float()
+    Y = Y_low_precision.float()
 
     # Gram matrix of Y: G = Y^H * Y. We symmetrize to avoid small Hermitian drift
     # introduced by finite precision arithmetic.
@@ -51,14 +55,11 @@ def chol_qr(
 
         # If info == 0 everywhere, the factorization succeeded for all batches.
         if (info == 0).all():
-            # Solve R^H Q = Y for Q using a triangular solver. This is
-            # equivalent to Y * (R^{-1})^H and yields an orthonormal basis.
+            # Solve Q R = Y, equivalent to Q = Y R^{-1}.
             Q = torch.linalg.solve_triangular(R, Y, upper=True, left=False)
-            del R, info, d, scale, G, Y
-            return Q.to(Y_fp16.dtype)
+            return Q.to(Y_low_precision.dtype)
 
         # If Cholesky failed for some batches, increase eps and try again.
-        del R, info
         eps = min(eps * 10.0, max_eps)
 
     # If repeated Cholesky attempts fail, we optionally try to repair G using
@@ -72,47 +73,43 @@ def chol_qr(
             G_spd = torch.matmul(V, torch.matmul(torch.diag_embed(L), V.mH))
             R = torch.linalg.cholesky(G_spd, upper=True)
             Q = torch.linalg.solve_triangular(R, Y, upper=True, left=False)
-            del L, V, G_spd, R, d, scale, G, Y
-            return Q.to(Y_fp16.dtype)
+            return Q.to(Y_low_precision.dtype)
         except Exception:
             # If anything goes wrong in the SPD repair path, silently fall back
             # to a standard QR factorization below.
             pass
 
-    # Final fallback: run a regular QR factorization on Y. This is more
-    # expensive but very robust.
+    # Final fallback: run regular QR on Y. This is more expensive but robust.
     Q, _ = torch.linalg.qr(Y, mode="reduced")
-    del d, scale, G, Y
-    return Q.to(Y_fp16.dtype)
+    return Q.to(Y_low_precision.dtype)
 
 
 @torch.no_grad()
-def householder_qr(Y_fp16: Tensor) -> Tensor:
+def householder_qr(Y_low_precision: Tensor) -> Tensor:
     """
     Standard QR-based orthonormalization using Householder reflections.
 
     This is a simpler but typically more numerically stable alternative to
     `chol_qr`. It directly applies QR to Y in float32 and converts the result
-    back to bfloat16.
+    back to the input dtype.
     """
-    Y = Y_fp16.float()
+    Y = Y_low_precision.float()
     Q, _ = torch.linalg.qr(Y, mode="reduced")
-    del Y
-    return Q.to(Y_fp16.dtype)
+    return Q.to(Y_low_precision.dtype)
 
 
 @torch.no_grad()
 def orthonormalize(
-    Y_fp16: Tensor,
+    Y_low_precision: Tensor,
     eye_q: Tensor,
-    orth: str = "chol",
+    orth: OrthogonalizationMethod = "chol",
     base_eps: float = 1e-6,
     max_eps: float = 10.0,
     max_tries: int = 6,
     use_eigh_last: bool = True,
 ) -> Tensor:
     """
-    Dispatch helper to orthonormalize the columns of Y_fp16.
+    Dispatch helper to orthonormalize the columns of a sketch matrix.
 
     Parameters
     ----------
@@ -123,8 +120,9 @@ def orthonormalize(
           more stable but somewhat heavier.
     """
     if orth == "chol":
-        return chol_qr(Y_fp16, eye_q, base_eps, max_eps, max_tries, use_eigh_last)
-    return householder_qr(Y_fp16)
+        return chol_qr(Y_low_precision, eye_q, base_eps, max_eps, max_tries, use_eigh_last)
+    return householder_qr(Y_low_precision)
+
 
 @torch.no_grad()
 def randomized_svd_fp16(
@@ -137,24 +135,22 @@ def randomized_svd_fp16(
     max_eps: float = 10.0,
     max_tries: int = 6,
     use_eigh_last: bool = True,
-    power_dtype: str = "fp16",
-    orth: str = "chol",
+    power_dtype: PowerDType = "bf16",
+    orth: OrthogonalizationMethod = "chol",
 ) -> tuple[Tensor, Tensor, Tensor]:
     """
-    Ultimate fused version: Randomized SVD supporting arbitrary dimensions, 
-    dynamic regularization, automatic transposition, and extreme memory release.
+    Hardware-efficient randomized SVD for KV-cache compression.
 
-    High‑level algorithm:
+    High-level algorithm:
     1. Optionally transpose wide matrices so that the working operator has
        more rows than columns (m >= n), which improves numerical behavior.
     2. Choose a working precision for the power iteration / projection
-       (fp32, fp16, fp16, or fp8 variants).
-    3. Build a low‑dimensional random subspace that approximates the range of A.
+       (fp32, bf16, fp16, or fp8 variants).
+    3. Build a low-dimensional random subspace that approximates the range of A.
     4. Apply subspace (power) iteration to sharpen separation between singular
        values and improve approximation quality.
     5. Project A to a small matrix B = Q^H A, compute an SVD of B.
     6. Lift the small SVD back to tall singular vectors of A.
-    7. Aggressively delete intermediate tensors to lower peak memory usage.
     """
     # ------------------------------------------------------------------
     # 1) Basic shape handling and possible wide‑matrix transpose
@@ -182,9 +178,9 @@ def randomized_svd_fp16(
     if power_dtype == "fp32":
         low_dtype = None
     elif power_dtype == "fp16":
-        low_dtype = torch.bfloat16
-    elif power_dtype == "fp16":
         low_dtype = torch.float16
+    elif power_dtype == "bf16":
+        low_dtype = torch.bfloat16
     elif power_dtype in ("fp8", "fp8_e4m3"):
         if hasattr(torch, "float8_e4m3fn"):
             low_dtype = torch.float8_e4m3fn
@@ -200,7 +196,9 @@ def randomized_svd_fp16(
                 "power_dtype='fp8_e5m2' requested, but torch.float8_e5m2 is not available in this PyTorch version."
             )
     else:
-        raise ValueError(f"Unsupported power_dtype '{power_dtype}'. Use 'fp32', 'fp16', 'fp16', or 'fp8'.")
+        raise ValueError(
+            f"Unsupported power_dtype '{power_dtype}'. Use 'fp32', 'fp16', 'bf16', 'fp8', or 'fp8_e5m2'."
+        )
 
     # ------------------------------------------------------------------
     # 3) Choose working representation X_pow (and optionally X_low)
@@ -249,7 +247,7 @@ def randomized_svd_fp16(
     # so for fp8 we first sample in at least float16 and then cast.
     rand_dtype = (
         torch.float16
-        if power_dtype not in ("fp32", "fp16", "fp16")
+        if power_dtype not in ("fp32", "fp16", "bf16")
         else X_pow.dtype
     )
     R_rand = torch.randn(
@@ -262,14 +260,12 @@ def randomized_svd_fp16(
     Y = torch.matmul(X_pow, R_rand)
     if M_pow is not None:
         Y = Y - torch.matmul(M_pow, R_rand)
-    del R_rand
 
     # For fp32 path we keep Y in float32 through orthonormalization so that we
     # closely match torch.svd_lowrank; for low‑precision paths we cast to
     # `low_dtype` to save memory and compute.
     Y_for_orth = Y if power_dtype == "fp32" else Y.to(low_dtype)
     Q = orthonormalize(Y_for_orth, eye_q, orth, base_eps, max_eps, max_tries, use_eigh_last)
-    del Y
 
     # ------------------------------------------------------------------
     # 5) Prepare transposed operator for power iteration
@@ -286,23 +282,19 @@ def randomized_svd_fp16(
         Y = torch.matmul(X_t, Q.to(X_pow.dtype))
         if M_t is not None:
             Y = Y - torch.matmul(M_t, Q.to(X_pow.dtype))
-        del Q
 
         # Re‑orthonormalize to keep the basis well conditioned.
         Y_for_orth = Y if power_dtype == "fp32" else Y.to(low_dtype)
         Q = orthonormalize(Y_for_orth, eye_q, orth, base_eps, max_eps, max_tries, use_eigh_last)
-        del Y
 
         # Y = (A - M) * Q
         Y = torch.matmul(X_pow, Q.to(X_pow.dtype))
         if M_pow is not None:
             Y = Y - torch.matmul(M_pow, Q.to(X_pow.dtype))
-        del Q
 
         # Orthonormalize again to obtain the updated subspace Q.
         Y_for_orth = Y if power_dtype == "fp32" else Y.to(low_dtype)
         Q = orthonormalize(Y_for_orth, eye_q, orth, base_eps, max_eps, max_tries, use_eigh_last)
-        del Y
 
     # ------------------------------------------------------------------
     # 7) Projection: B = Q^H (A - M)
@@ -320,7 +312,6 @@ def randomized_svd_fp16(
     # We compute SVD in float32 regardless of the power‑iteration dtype for
     # accuracy, then cast down later if needed.
     U_small, S, Vh_small = torch.linalg.svd(Bproj.float(), full_matrices=False)
-    del Bproj
 
     # ------------------------------------------------------------------
     # 9) Lift back to tall singular vectors and cast dtypes
@@ -334,20 +325,10 @@ def randomized_svd_fp16(
         U_tall = U_tall.to(low_dtype)
         Vh_tall = Vh_tall.to(low_dtype)
         S = S.to(low_dtype)
-    del U_small, Vh_small
 
     # ------------------------------------------------------------------
-    # 10) Aggressive cleanup of intermediates to free memory early
+    # 10) Final shape handling
     # ------------------------------------------------------------------
-    del Q, eye_q, X_t, X_pow
-    if X_low is not None:
-        del X_low
-    if M_pow is not None:
-        del M_pow, M_t
-    if M_low is not None:
-        del M_low
-
-    # --- Final shape matching and truncation ---
     # At this point U_tall, S, Vh_tall correspond to the (possibly transposed)
     # operator. We:
     #   - truncate to the requested rank

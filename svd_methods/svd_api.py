@@ -4,7 +4,7 @@ High-level API to run different SVD methods on a matrix (e.g., KV-cache block).
 Supported methods:
 - 'full'    : torch.linalg.svd        (exact, slow, memory heavy)
 - 'lowrank' : torch.svd_lowrank      (PyTorch randomized SVD baseline)
-- 'cholqr'  : randomized_svd_fp16    (our fp16 · Cholesky-QR v6 kernel)
+- 'cholqr'  : randomized_svd_fp16    (16-bit randomized SVD + Cholesky-QR v6)
 """
 
 from __future__ import annotations
@@ -33,7 +33,7 @@ class SVDConfig:
         Which SVD implementation to use:
         - 'full'    : exact SVD via torch.linalg.svd
         - 'lowrank' : torch.svd_lowrank randomized SVD
-        - 'cholqr'  : our fp16 · Cholesky-QR v6 randomized SVD kernel
+        - 'cholqr'  : 16-bit randomized SVD + Cholesky-QR v6
     rank:
         Target rank k for low-rank methods ('lowrank' and 'cholqr').
         Ignored for 'full'.
@@ -58,7 +58,7 @@ def run_svd(
     config: SVDConfig,
     *,
     mean_tensor: Optional[Tensor] = None,
-    power_dtype: str = "fp16",
+    power_dtype: str = "bf16",
     orth: str = "chol",
 ) -> Tuple[Tensor, Tensor, Tensor]:
     """
@@ -77,7 +77,9 @@ def run_svd(
             A' = A - M
     power_dtype:
         Only used for 'cholqr'. Controls the working precision of the
-        power / projection steps. Defaults to 'fp16' (as in v6).
+        power / projection steps. Defaults to 'bf16' to match the reported v6
+        path.
+        Supported values: 'fp32', 'fp16', 'bf16', 'fp8', and 'fp8_e5m2'.
     orth:
         Only used for 'cholqr'. Chooses orthogonalization backend:
         - 'chol'  : Cholesky-QR (fast, memory friendly; slightly less stable)
@@ -122,4 +124,3 @@ def run_svd(
         )
 
     raise ValueError(f"Unknown SVD method: {method!r}")
-

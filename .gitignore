@@ -1,0 +1,16 @@
+# Python/runtime artifacts
+__pycache__/
+*.py[cod]
+
+# Local OS/editor artifacts
+.DS_Store
+.idea/
+.vscode/
+
+# Scratch outputs and backup files
+*.bak
+* copy*/
+
+# Local experiment scratch space
+tmp/
+scratch/

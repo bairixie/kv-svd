@@ -1,3 +1,13 @@
+"""
+Archival research iteration for Cholesky-QR randomized SVD.
+
+This file is kept to document the development path toward `random_cholesky_v6`.
+Use `random_cholesky_v6.py` through `svd_api.py` for the final method.
+"""
+
+import torch
+
+
 @torch.no_grad()
 def chol_qr(Y_bf16, eye, base_eps=1e-6, max_eps=10.0, max_tries=4, use_eigh_last=True, fallback_to_qr=True,):
     Y = Y_bf16.float()

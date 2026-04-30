@@ -1,32 +1,36 @@
-# kv-svd
+# KV-SVD
 
-Fast randomized SVD for LLM KV-cache compression, with end-to-end benchmarking and analysis.
+Hardware-efficient randomized SVD for online LLM KV-cache compression.
 
 **Code:** [github.com/bairixie/kv-svd](https://github.com/bairixie/kv-svd)  
 **Full write-up (method, experiments, figures):** [blog.md](blog.md)
 
----
-
-## What we're solving
-
-In long-context LLM inference, the **KV cache** grows linearly with sequence length and becomes a major **memory and compute bottleneck**. A standard approach is to approximate it with a **low-rank SVD**. Exact SVD (`torch.linalg.svd`) is too slow and memory-heavy for online use; even **randomized SVD** via `torch.svd_lowrank` leaves a lot of hardware efficiency on the table.
-
-This repo provides **faster, numerically robust randomized SVD kernels** designed for KV-cache shapes and integrates with the [xKV](https://github.com/abdelfattah-lab/xKV) codebase for end-to-end latency and accuracy evaluation.
+This is a **personal research showcase repository**. It preserves the final SVD
+method, the development path, and the evidence used in the write-up. It is not
+packaged as a standalone reproduction benchmark; end-to-end evaluation was run
+inside the upstream xKV framework.
 
 ---
 
-## What we built
+## Research question
 
-- **Randomized SVD implementations (`cholqr_v1`–`cholqr_v6`)** in `svd_methods/`:
-  - **16-bit power iteration** (FP16/BF16) on Tensor Cores for speed.
-  - **Cholesky-based QR** for tall-skinny orthogonalization, with Gram symmetrization, adaptive regularization, SPD-repair fallback, and optional Householder QR.
-  - Small core SVD kept in **FP32** for stability.
-- **cholqr_v6** is the main kernel used in the reported experiments: **4.1× faster** than `torch.svd_lowrank` (392.0s → 95.7s SVD CUDA time), with SVD’s share of total profiling time dropping from 14.2% to 3.5%.
+Long-context LLM inference is increasingly limited by the **KV cache**, whose memory footprint grows linearly with sequence length and number of layers. xKV reduces this footprint by applying cross-layer SVD to grouped KV-cache blocks, but the SVD must run online during prefill. Exact SVD (`torch.linalg.svd`) is too slow and memory-heavy for this setting; PyTorch randomized SVD (`torch.svd_lowrank`) is faster, but still spends most of its time in FP32 matrix multiplies and Householder QR.
+
+This repository studies a narrower systems question: **how much of randomized SVD for KV-cache compression can be moved onto GPU-friendly 16-bit matrix operations without losing task accuracy?**
+
+---
+
+## Main contribution
+
+- **`cholqr_v6` is the reported method.** It keeps the randomized SVD algorithmic structure, but runs the large projection/power-iteration GEMMs in 16-bit and replaces Householder QR with a Cholesky-QR orthogonalization path designed for tall-skinny matrices.
+- **Numerical safeguards are explicit.** Cholesky QR uses FP32 Gram formation, Gram symmetrization, adaptive diagonal regularization, optional eigendecomposition-based SPD repair, and Householder QR as the final fallback.
+- **The small core SVD remains FP32.** This preserves stability and matches PyTorch's current requirement that `torch.linalg.svd` not receive FP16/BF16 inputs.
+- **Measured result:** `cholqr_v6` is **4.1× faster** than `torch.svd_lowrank` in the reported SVD CUDA-time comparison (392.0s → 96.7s), while matching average RULER accuracy within 0.12 percentage points.
 - **Baselines**: full SVD and `torch.svd_lowrank` (see `svd_baselines.py`).
 - **Benchmark results** under `results/` (from xKV runs): logs and JSON for full_svd, lowrank_svd, and cholqr_v1–v6.
-- **Pre-generated figures** in `plot/` (including `plot/cholqr_v6/` for the main paper figures).
+- **Pre-generated figures** in `plot/`, with the main figures in `plot/cholqr_v6/`.
 
-All details (algorithm, setup, tables, and figure interpretations) are in **[blog.md](blog.md)**.
+The full narrative, algorithm, experiments, tables, and figure interpretation are in **[blog.md](blog.md)**.
 
 ---
 
@@ -36,9 +40,9 @@ All details (algorithm, setup, tables, and figure interpretations) are in **[blo
 - **Task:** RULER Variable Tracking (`ruler/vt`), **65,536-token context**
 - **Example KV shape:** `[1, 32, 65295, 128]` (batch=1, heads=32, seq_len≈65k, head_dim=128)
 - **Example config:** layer group size (LGS)=4, rank K=256, value rank V=384, n_iter=4
-- **Precision:** KV and large GEMMs in FP16; small SVD and critical steps in FP32
+- **Precision:** KV and large GEMMs in 16-bit; small SVD and Cholesky internals in FP32
 
-We measure SVD CUDA time (total and per-stage), task accuracy on `ruler/vt`, and trade-offs over power iterations, rank, and LGS.
+The blog reports SVD CUDA time, per-stage time breakdowns, and RULER task accuracy across FWE, NIAH MultiKey, NIAH Single1, and VT.
 
 ---
 
@@ -48,7 +52,7 @@ We measure SVD CUDA time (total and per-stage), task accuracy on `ruler/vt`, and
 |--------|-------------|
 | **Full SVD** | `torch.linalg.svd` — exact, slow, memory-heavy; accuracy upper bound. |
 | **Low-rank SVD** | `torch.svd_lowrank` — PyTorch randomized SVD; baseline for speed/accuracy. |
-| **cholqr_v1–v6** | Custom randomized SVD: Cholesky QR + 16-bit power iteration; v6 is the main production kernel with orth choice (chol/house) and full per-stage breakdown. |
+| **cholqr_v1–v6** | Research iterations of the custom randomized SVD kernel. v6 is the main method used in the reported figures. |
 
 ---
 
@@ -58,29 +62,49 @@ We measure SVD CUDA time (total and per-stage), task accuracy on `ruler/vt`, and
 kv-svd/
 ├── blog.md                 # Full write-up: method, experiments, figures
 ├── README.md               # This file
+├── docs/                   # Project and result notes
 ├── svd_methods/            # SVD implementations and high-level API
-│   ├── svd_baselines.py   # Full SVD & torch.svd_lowrank baselines
-│   ├── svd_api.py         # Unified wrapper: 'full' / 'lowrank' / 'cholqr'
-│   ├── random_cholesky_v1.py … random_cholesky_v6.py   # cholqr kernels
+│   ├── svd_baselines.py    # Full SVD and torch.svd_lowrank baselines
+│   ├── svd_api.py          # Unified wrapper: 'full' / 'lowrank' / 'cholqr'
+│   └── random_cholesky_v*.py   # Cholesky-QR randomized SVD variants
 ├── results/                # Benchmark outputs (from xKV)
 │   ├── full_svd/           # Full SVD runs
 │   ├── lowrank_svd/        # torch.svd_lowrank runs
-│   ├── cholqr_v1/ … cholqr_v6/   # Custom kernel runs (vt, fwe, niah_*, etc.)
+│   └── cholqr_v1/ … cholqr_v6/   # Custom kernel runs
 ├── plot/                   # Figures and plot outputs
 │   ├── cholqr_v6/          # Main figures (SVD time proportion, stage breakdown, accuracy)
-│   ├── cholqr_v3/          # Legacy comparison figures for cholqr_v3
 │   └── fig_*.png           # All-methods comparison figures
 ```
 
-- **SVD code:** Used by xKV via plug-in; not run standalone in this repo.
-- **Results:** Produced by [xKV](https://github.com/abdelfattah-lab/xKV). Copy or symlink xKV logs/JSON into `results/*` as needed.
-- **Plots:** Figures in `plot/` are generated from those results (plotting scripts may live in a separate workflow or script set). Key figures for the blog are in `plot/cholqr_v6/`.
+- **SVD code:** Final method code is in `svd_methods/random_cholesky_v6.py` and exposed through `svd_methods/svd_api.py`.
+- **Results:** Stored logs/JSON are copied from xKV runs and kept as supporting evidence for the blog.
+- **Plots:** Key figures for the public narrative are in `plot/cholqr_v6/`.
 
 ---
 
-## Running benchmarks (in xKV)
+## Using the SVD API
 
-End-to-end KV-cache benchmarks are run inside the **xKV** repo, not here. Example (RULER VT, 65k context, xKV-4):
+```python
+from svd_methods.svd_api import SVDConfig, run_svd
+
+config = SVDConfig(method="cholqr", rank=256, n_iter=4, oversample=4)
+U, S, Vh = run_svd(
+    tensor,
+    config,
+    power_dtype="bf16",  # options: "fp32", "bf16", "fp16", "fp8", "fp8_e5m2"
+    orth="chol",        # options: "chol" or "house"
+)
+```
+
+For comparison baselines, set `method="full"` or `method="lowrank"`.
+
+---
+
+## Optional Evaluation Context
+
+End-to-end KV-cache benchmarks were run inside the **xKV** repo. The command
+below documents the evaluation context used for the reported RULER VT runs; it
+is included for orientation rather than as a full reproduction script.
 
 ```bash
 # In the xKV repo
@@ -96,7 +120,8 @@ CUDA_VISIBLE_DEVICES=... OMP_NUM_THREADS=... torchrun --standalone --nnodes=1 --
   --start_layer_idx 0 --end_layer_idx -1
 ```
 
-Logs and JSON produced by xKV can be copied into this repo’s `results/*` for local analysis and plotting.
+Logs and JSON produced by xKV were copied into this repo’s `results/*` folders
+as research artifacts.
 
 **Naming convention (typical):**
 
@@ -114,16 +139,18 @@ Logs and JSON produced by xKV can be copied into this repo’s `results/*` for l
 | **v3** | Same stability as v2; cheaper `eigvalsh`-based shifts. |
 | **v4** | 16-bit-oriented, trace-scaled jitter, optional eigen-clamping, mixed-precision normalization. |
 | **v5** | Further tuning and options for KV-cache workloads. |
-| **v6** | Main kernel: `randomized_svd_fp16()` with `orth` (chol / house), `power_dtype`, transpose handling, and aggressive memory release; exposed via the `'cholqr'` option in `svd_methods/svd_api.py`, and used for the reported 4.1× speedup and figures in [blog.md](blog.md). |
+| **v6** | Main method: `randomized_svd_fp16()` with selectable orthogonalization (`chol` / `house`), configurable `power_dtype`, wide-matrix transpose handling, and per-stage behavior matching the blog narrative. Exposed through `method="cholqr"` in `svd_methods/svd_api.py`. |
 
 ---
 
-## Environment
+## Scope
 
-- **For xKV:** Follow xKV’s requirements (PyTorch, CUDA, etc.).
-- **For local plotting/analysis:** `matplotlib`, `numpy`, and optionally `torch`. If `~/.matplotlib` is not writable, set `MPLCONFIGDIR` (e.g. `export MPLCONFIGDIR=/tmp/matplotlib-cache`).
-
-Commands in this README assume the project root is the repo root (where `blog.md` and `svd_methods/` live).
+- This repository is intended to make the final method and research story easy
+  to inspect.
+- It does not vendor xKV, model checkpoints, datasets, or a full benchmark
+  environment.
+- Earlier `cholqr_v1`–`cholqr_v5` files are retained to show the research
+  progression; `cholqr_v6` is the method to read first.
 
 ---
 

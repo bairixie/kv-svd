@@ -1,4 +1,12 @@
+"""
+Archival research iteration for Cholesky-QR randomized SVD.
+
+This file is kept to document the development path toward `random_cholesky_v6`.
+Use `random_cholesky_v6.py` through `svd_api.py` for the final method.
+"""
+
 import torch
+
 
 @torch.no_grad()
 def chol_qr(Y_bf16, eye_fp32, base_eps=1e-6, max_eps=10.0, max_tries=6, use_eigh_last=True):
@@ -29,7 +37,7 @@ def chol_qr(Y_bf16, eye_fp32, base_eps=1e-6, max_eps=10.0, max_tries=6, use_eigh
         
         eps = min(eps * 10.0, max_eps)
 
-    # 4. High-Precision Fallback: Eigendecomposition Reconstruction (The "V2" Magic)
+    # 4. High-precision fallback: eigendecomposition reconstruction.
     # Only runs if jitter fails. Maintains spectral accuracy better than diagonal shift.
     if use_eigh_last:
         try:
@@ -48,7 +56,7 @@ def chol_qr(Y_bf16, eye_fp32, base_eps=1e-6, max_eps=10.0, max_tries=6, use_eigh
         except Exception:
             pass # Fall through to QR
 
-    # 5. Ultimate Fallback: Slow but safe Householder QR
+    # 5. Final fallback: slower but robust Householder QR.
     Q, _ = torch.linalg.qr(Y, mode="reduced")
     return Q.to(Y_bf16.dtype)
 

@@ -1,4 +1,12 @@
+"""
+Archival research iteration for Cholesky-QR randomized SVD.
+
+This file is kept to document the development path toward `random_cholesky_v6`.
+Use `random_cholesky_v6.py` through `svd_api.py` for the final method.
+"""
+
 import torch
+
 
 @torch.no_grad()
 def chol_qr(
