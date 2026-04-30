@@ -270,7 +270,7 @@ The structure mirrors the progression in this section: the fast happy path (shif
 ## 6.2 End-to-End SVD Latency
 
 <figure>
-<img src="/imgs/blog/svd_blog/Figure_1_SVD_Time_Proportion.png" alt="SVD Overhead per Sample" width="700"/>
+<img src="plot/cholqr_v6/Figure_1_SVD_Time_Proportion.png" alt="SVD Overhead per Sample" width="700"/>
 <figcaption>Fig. 1 — Per-sample CUDA time decomposed into SVD (dark) and other inference tasks (grey). Our method reduces SVD from 13.0% to 3.6% of total per-sample time.</figcaption>
 </figure>
 
@@ -289,7 +289,7 @@ The structure mirrors the progression in this section: the fast happy path (shif
 ## 6.3 Stage-Level Breakdown
 
 <figure>
-<img src="/imgs/blog/svd_blog/Figure_3_CUDA_Time_by_Stage.png" alt="CUDA Time by Stage" width="700"/>
+<img src="plot/cholqr_v6/Figure_3_CUDA_Time_by_Stage.png" alt="CUDA Time by Stage" width="700"/>
 <figcaption>Fig. 2 — Randomized SVD CUDA time by stage: torch.svd_lowrank vs. Ours (16-bit · Cholesky-QR). RTX A6000 · n_iter=4 · layer group size 4.</figcaption>
 </figure>
 
@@ -312,7 +312,7 @@ The structure mirrors the progression in this section: the fast happy path (shif
 ## 6.4 Accuracy vs. Speed Trade-off
 
 <figure>
-<img src="/imgs/blog/svd_blog/Figure_2_SVD_Accuracy_Comparison_VT.png" alt="Accuracy Comparison" width="700"/>
+<img src="plot/cholqr_v6/Figure_2_SVD_Accuracy_Comparison_VT.png" alt="Accuracy Comparison" width="700"/>
 <figcaption>Fig. 3 — Average accuracy over four RULER subtasks (FWE · NIAH MultiKey · NIAH Single1 · VT). RTX A6000 · n_iter=4 · G=4 · oversampling p=4.</figcaption>
 </figure>
 
