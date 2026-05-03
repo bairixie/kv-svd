@@ -1,6 +1,6 @@
-/home/zm329/svd/xKV/.venv/lib/python3.11/site-packages/torch/cuda/__init__.py:61: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
+<xKV-root>/.venv/lib/python3.11/site-packages/torch/cuda/__init__.py:61: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
   import pynvml  # type: ignore[import]
-/home/zm329/svd/xKV/.venv/lib/python3.11/site-packages/jieba/_compat.py:18: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+<xKV-root>/.venv/lib/python3.11/site-packages/jieba/_compat.py:18: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
   import pkg_resources
 [svd_v6 acc] output_dir=experiments/svd_v6_fp16_chol_acc_4datasets model=meta-llama/Meta-Llama-3.1-8B-Instruct
   lgs=4 rank_k=256 rank_v=384 n_iter=4 oversample=4 fp16 chol
@@ -40,7 +40,7 @@ Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00
   Running ruler/vt -> experiments/svd_v6_fp16_chol_acc_4datasets/ruler_vt/outputs__svd_v6_fp16_chol__ruler_vt.jsonl
 [Test] meta-llama/Meta-Llama-3.1-8B-Instruct on ruler/vt, results saved to experiments/svd_v6_fp16_chol_acc_4datasets/ruler_vt/outputs__svd_v6_fp16_chol__ruler_vt.jsonl
 
-Testing:   0%|          | 0/96 [00:00<?, ?it/s]/home/zm329/svd/xKV/.venv/lib/python3.11/site-packages/transformers/generation/configuration_utils.py:631: UserWarning: `do_sample` is set to `False`. However, `temperature` is set to `0.0` -- this flag is only used in sample-based generation modes. You should set `do_sample=True` or unset `temperature`.
+Testing:   0%|          | 0/96 [00:00<?, ?it/s]<xKV-root>/.venv/lib/python3.11/site-packages/transformers/generation/configuration_utils.py:631: UserWarning: `do_sample` is set to `False`. However, `temperature` is set to `0.0` -- this flag is only used in sample-based generation modes. You should set `do_sample=True` or unset `temperature`.
   warnings.warn(
 
 Testing:   1%|          | 1/96 [00:31<50:02, 31.60s/it]

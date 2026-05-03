@@ -1,4 +1,4 @@
-/home/zm329/svd/xKV/.venv/lib/python3.11/site-packages/torch/cuda/__init__.py:61: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
+<xKV-root>/.venv/lib/python3.11/site-packages/torch/cuda/__init__.py:61: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
   import pynvml  # type: ignore[import]
 [Dist init] world_size=1
 data_names: ['ruler/vt']
@@ -227,7 +227,7 @@ SVD Performance Statistics:
 randomized (Rank 256):
 Error saving SVD performance records: 'count'
 Traceback (most recent call last):
-  File "/home/zm329/svd/xKV/evaluate/eval_acc.py", line 285, in <module>
+  File "<xKV-root>/evaluate/eval_acc.py", line 285, in <module>
     print(colored(f"  Total Calls: {stat['count']}", 'white'))
                                     ~~~~^^^^^^^^^
 KeyError: 'count'

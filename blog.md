@@ -337,7 +337,7 @@ The structure mirrors the progression in this section: the fast happy path (shif
       title={Hardware efficient Randomized SVD},
       author={Zhihao Mo and Chi-Chih Chang and Mohamed Abdelfattah},
       year={2026},
-      url={https://abdelfattah-lab.github.io/blogs/},
+      url={https://abdelfattah-lab.github.io/blogs/svd-blog/},
 }
 ```
 
